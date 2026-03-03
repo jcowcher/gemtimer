@@ -437,6 +437,9 @@
     background: var(--orange-light);
   }
 
+  .btn-primary.sustaining { background: var(--gray-400); }
+  .btn-primary.sustaining:hover { background: var(--gray-500); }
+
   .btn-secondary {
     background: var(--gray-100);
     color: var(--gray-700);
@@ -1921,6 +1924,11 @@
   setupWorkTypeToggle(document.getElementById('mainWorkTypeToggle'), (type) => {
     currentWorkType = type;
     if (elapsed > 0) updateDiscFill(Math.min(elapsed / ONE_HOUR, 1));
+    // Update start/pause button color
+    const spBtn = document.getElementById('startPauseBtn') || document.querySelector('.btn-primary');
+    if (spBtn) {
+      spBtn.classList.toggle('sustaining', type === 'sustaining');
+    }
   });
 
   // ── Auth & Supabase ──────────────────────────────────
@@ -3334,7 +3342,7 @@
       startTime = null;
       btnTextNew.textContent = t('resume');
       playIconNew.innerHTML = '<path d="M8 5v14l11-7z"/>';
-      startPauseBtnNew.className = 'btn btn-primary';
+      startPauseBtnNew.className = 'btn btn-primary' + (currentWorkType === 'sustaining' ? ' sustaining' : '');
       statusLabel.textContent = getRandomIdleQuote();
       statusLabel.className = 'time-label paused-label';
       timerBody.classList.remove('running');
@@ -3394,6 +3402,7 @@
     btnTextNew.textContent = t('start');
     playIconNew.innerHTML = '<path d="M8 5v14l11-7z"/>';
     startPauseBtnNew.className = 'btn btn-primary';
+    startPauseBtnNew.classList.remove('sustaining');
     statusLabel.textContent = getRandomIdleQuote();
     statusLabel.className = 'time-label idle-label';
     timerBody.classList.remove('running');
