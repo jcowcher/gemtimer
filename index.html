@@ -8,7 +8,7 @@
 <meta name="keywords" content="focus timer, pomodoro, deep work, productivity timer, visual timer, study timer">
 <meta name="author" content="Elementary Timer">
 <meta name="theme-color" content="#FF6600">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' cdn.jsdelivr.net *.clerk.accounts.dev challenges.cloudflare.com; style-src 'self' 'unsafe-inline' fonts.googleapis.com; font-src fonts.gstatic.com; connect-src mrphkxragldfngrkkuqs.supabase.co *.clerk.accounts.dev *.clerk.dev; img-src 'self' data: img.clerk.com; worker-src 'self' blob:; frame-src challenges.cloudflare.com;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' cdn.jsdelivr.net *.clerk.accounts.dev *.cloudflareinsights.com challenges.cloudflare.com; style-src 'self' 'unsafe-inline' fonts.googleapis.com; font-src fonts.gstatic.com; connect-src mrphkxragldfngrkkuqs.supabase.co *.clerk.accounts.dev *.clerk.dev; img-src 'self' data: img.clerk.com; worker-src 'self' blob:; frame-src challenges.cloudflare.com;">
 
 <!-- Open Graph -->
 <meta property="og:type" content="website">
@@ -2022,20 +2022,13 @@
 
   // ── Auth & Supabase ──────────────────────────────────
   function initSupabase() {
-    console.log('initSupabase called, supabase:', !!window.supabase, 'existing client:', !!supabaseClient);
     if (!window.supabase || supabaseClient) return;
-    try {
-      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-        accessToken: async () => {
-          const t = await window.Clerk?.session?.getToken();
-          console.log('accessToken called, got:', t ? 'jwt' : 'null');
-          return t ?? null;
-        }
-      });
-      console.log('Supabase client created with accessToken option');
-    } catch (e) {
-      console.error('initSupabase error:', e);
-    }
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      accessToken: async () => {
+        const t = await window.Clerk?.session?.getToken();
+        return t ?? null;
+      }
+    });
   }
 
   async function initAuth() {
