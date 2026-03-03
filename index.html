@@ -485,6 +485,7 @@
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
+    gap: 1rem;
     margin-bottom: 1.25rem;
     padding-bottom: 0.4rem;
     border-bottom: 2px solid var(--black);
@@ -1255,12 +1256,19 @@
   /* Add Session */
   .add-session-link {
     background: none; border: none; color: var(--orange); font-size: 0.8rem;
-    font-family: inherit; cursor: pointer; padding: 0; margin-left: auto;
+    font-family: inherit; cursor: pointer; padding: 0;
     display: inline-flex; align-items: center; gap: 0.35rem;
     align-self: flex-end;
   }
   .add-session-link:hover { text-decoration: underline; }
   .add-session-link * { pointer-events: none; }
+  .pomodoro-link {
+    background: none; border: none; color: var(--orange); font-size: 0.8rem;
+    font-family: inherit; cursor: pointer; padding: 0; margin-left: auto;
+    display: inline-flex; align-items: center; gap: 0.35rem;
+  }
+  .pomodoro-link:hover { text-decoration: underline; }
+  .pomodoro-link.active { font-weight: 600; text-decoration: underline; }
   .add-session-icon {
     display: inline-flex; align-items: center; justify-content: center;
     width: 18px; height: 18px; border-radius: 50%;
@@ -1605,6 +1613,7 @@
   <div class="session-section">
     <div class="section-header">
       <span class="section-title">Today's breakdown</span>
+      <button class="pomodoro-link" id="pomodoroBtn">Pomodoro</button>
       <button class="add-session-link" id="addSessionBtn"><span class="add-session-icon">+</span> Add a session</button>
     </div>
     <div class="session-count-below" id="sessionCount"></div>
@@ -1760,6 +1769,7 @@
       whatWorking: 'What are you working on?', tryTheme: 'Try a different quote theme...',
       clickDismiss: 'click anywhere to dismiss', privacyPolicy: 'Privacy Policy',
       deleteSession: 'Delete session', resetSherlock: 'Reset to Sherlock Holmes',
+      pomodoro: 'Pomodoro', exitPomodoro: 'Exit Pomodoro', breakTime: 'Break',
     },
     es: { label: 'Español', flag: '🇪🇸',
       start: 'Iniciar', pause: 'Pausar', resume: 'Reanudar', finishSession: 'Terminar sesión',
@@ -1772,6 +1782,7 @@
       whatWorking: '¿En qué estás trabajando?', tryTheme: 'Prueba un tema de citas diferente...',
       clickDismiss: 'haz clic en cualquier lugar para cerrar', privacyPolicy: 'Política de privacidad',
       deleteSession: 'Eliminar sesión', resetSherlock: 'Restablecer a Sherlock Holmes',
+      pomodoro: 'Pomodoro', exitPomodoro: 'Salir de Pomodoro', breakTime: 'Descanso',
     },
     fr: { label: 'Français', flag: '🇫🇷',
       start: 'Démarrer', pause: 'Pause', resume: 'Reprendre', finishSession: 'Terminer la session',
@@ -1784,6 +1795,7 @@
       whatWorking: 'Sur quoi travaillez-vous ?', tryTheme: 'Essayez un autre thème de citations...',
       clickDismiss: 'cliquez n\'importe où pour fermer', privacyPolicy: 'Politique de confidentialité',
       deleteSession: 'Supprimer la session', resetSherlock: 'Réinitialiser à Sherlock Holmes',
+      pomodoro: 'Pomodoro', exitPomodoro: 'Quitter Pomodoro', breakTime: 'Pause',
     },
     de: { label: 'Deutsch', flag: '🇩🇪',
       start: 'Starten', pause: 'Pause', resume: 'Fortsetzen', finishSession: 'Sitzung beenden',
@@ -1796,6 +1808,7 @@
       whatWorking: 'Woran arbeitest du?', tryTheme: 'Probiere ein anderes Zitat-Thema...',
       clickDismiss: 'Klicke irgendwo zum Schließen', privacyPolicy: 'Datenschutzerklärung',
       deleteSession: 'Sitzung löschen', resetSherlock: 'Auf Sherlock Holmes zurücksetzen',
+      pomodoro: 'Pomodoro', exitPomodoro: 'Pomodoro beenden', breakTime: 'Pause',
     },
     pt: { label: 'Português', flag: '🇧🇷',
       start: 'Iniciar', pause: 'Pausar', resume: 'Retomar', finishSession: 'Encerrar sessão',
@@ -1808,6 +1821,7 @@
       whatWorking: 'No que você está trabalhando?', tryTheme: 'Tente um tema de citações diferente...',
       clickDismiss: 'clique em qualquer lugar para fechar', privacyPolicy: 'Política de Privacidade',
       deleteSession: 'Excluir sessão', resetSherlock: 'Redefinir para Sherlock Holmes',
+      pomodoro: 'Pomodoro', exitPomodoro: 'Sair do Pomodoro', breakTime: 'Intervalo',
     },
     ja: { label: '日本語', flag: '🇯🇵',
       start: 'スタート', pause: '一時停止', resume: '再開', finishSession: 'セッション終了',
@@ -1820,6 +1834,7 @@
       whatWorking: '何に取り組んでいますか？', tryTheme: '別の引用テーマを試す...',
       clickDismiss: 'どこかをクリックして閉じる', privacyPolicy: 'プライバシーポリシー',
       deleteSession: 'セッションを削除', resetSherlock: 'シャーロック・ホームズにリセット',
+      pomodoro: 'ポモドーロ', exitPomodoro: 'ポモドーロ終了', breakTime: '休憩',
     },
   };
 
@@ -1848,6 +1863,10 @@
     document.getElementById('privacyLink').textContent = t('privacyPolicy');
     document.getElementById('weekPrev').title = t('previousWeek');
     document.getElementById('weekNext').title = t('nextWeek');
+
+    // Update Pomodoro button
+    const pomoBtn = document.getElementById('pomodoroBtn');
+    if (pomoBtn) pomoBtn.textContent = pomodoroMode ? t('exitPomodoro') : t('pomodoro');
 
     // Update work type toggle labels
     document.querySelectorAll('.work-type-toggle').forEach(toggle => {
@@ -1933,6 +1952,12 @@
   let supabaseClient = null;
   let currentWorkType = 'deep'; // 'deep' or 'sustaining'
   let chime60Played = false;
+
+  // Pomodoro state
+  let pomodoroMode = false;
+  let pomodoroPhase = 'work'; // 'work' or 'break'
+  const POMO_WORK = 25 * 60;  // 1500s
+  const POMO_BREAK = 5 * 60;  // 300s
 
   // Soft bell chime via Web Audio API
   function playSoftBell() {
@@ -2201,9 +2226,9 @@
   });
 
   // Init disc fill
-  function updateDiscFill(fraction) {
+  function updateDiscFill(fraction, color) {
     const degrees = fraction * 360;
-    const color = currentWorkType === 'sustaining' ? 'var(--gray-900)' : 'var(--orange)';
+    if (!color) color = currentWorkType === 'sustaining' ? 'var(--gray-900)' : 'var(--orange)';
     timerFill.style.background = fraction === 0
       ? 'var(--gray-200)'
       : 'conic-gradient(' + color + ' ' + degrees + 'deg, var(--gray-200) ' + degrees + 'deg)';
@@ -2256,6 +2281,23 @@
   }
 
   function updateDisplay() {
+    if (pomodoroMode) {
+      const target = pomodoroPhase === 'work' ? POMO_WORK : POMO_BREAK;
+      const remaining = Math.max(target - elapsed, 0);
+      display.textContent = fmt(remaining);
+      const fraction = remaining / target;
+      const color = pomodoroPhase === 'break' ? '#4CAF50' : undefined;
+      updateDiscFill(fraction, color);
+
+      display.classList.remove('idle');
+      display.classList.add('visible');
+
+      document.title = running
+        ? fmt(remaining) + ' \u2014 Elementary Timer'
+        : 'Elementary Timer';
+      return;
+    }
+
     display.textContent = fmt(elapsed);
 
     const fraction = Math.min(elapsed / ONE_HOUR, 1);
@@ -3389,6 +3431,19 @@
     elapsed = elapsedBeforePause + Math.floor((Date.now() - startTime) / 1000);
     updateDisplay();
 
+    // Pomodoro phase transitions
+    if (pomodoroMode) {
+      const target = pomodoroPhase === 'work' ? POMO_WORK : POMO_BREAK;
+      if (elapsed >= target) {
+        if (pomodoroPhase === 'work') {
+          finishPomodoroWork();
+        } else {
+          finishPomodoroBreak();
+        }
+      }
+      return;
+    }
+
     // Check time-based Easter eggs (only trigger once per second crossed)
     for (let s = prev + 1; s <= elapsed; s++) {
       if (activeTimeTriggers[s]) {
@@ -3403,6 +3458,127 @@
       playSoftBell();
     }
   }
+
+  // ── Pomodoro Functions ───────────────────────────────
+  const pomodoroBtn = document.getElementById('pomodoroBtn');
+
+  function enterPomodoro() {
+    pomodoroMode = true;
+    pomodoroPhase = 'work';
+
+    // Stop any running timer and reset
+    clearInterval(interval);
+    interval = null;
+    running = false;
+    elapsed = 0;
+    startTime = null;
+    elapsedBeforePause = 0;
+
+    // Update button
+    pomodoroBtn.textContent = t('exitPomodoro');
+    pomodoroBtn.classList.add('active');
+
+    // Show 25:00 countdown
+    updateDisplay();
+    display.classList.remove('idle');
+    display.classList.add('visible');
+    statusLabel.textContent = t('pomodoro');
+    statusLabel.className = 'time-label idle-label';
+  }
+
+  function exitPomodoro() {
+    pomodoroMode = false;
+    pomodoroPhase = 'work';
+
+    // Stop timer and reset
+    clearInterval(interval);
+    interval = null;
+    running = false;
+    elapsed = 0;
+    startTime = null;
+    elapsedBeforePause = 0;
+
+    // Update button
+    pomodoroBtn.textContent = t('pomodoro');
+    pomodoroBtn.classList.remove('active');
+
+    // Reset display to normal count-up mode
+    updateDisplay();
+    display.classList.add('idle');
+    display.classList.remove('visible');
+    statusLabel.textContent = getRandomIdleQuote();
+    statusLabel.className = 'time-label idle-label';
+    timerBody.classList.remove('running');
+    timerWrap.classList.remove('active');
+  }
+
+  async function finishPomodoroWork() {
+    const savedElapsed = elapsed;
+    const savedName = sessionInput.value.trim() || t('deepWork');
+    const savedType = currentWorkType;
+
+    // Save work session
+    if (savedElapsed >= 5) {
+      const session = { duration: savedElapsed, date: new Date().toISOString(), name: savedName, type: savedType };
+      sessions.push(session);
+      localStorage.setItem('et_sessions', JSON.stringify(sessions));
+      if (currentUser && supabaseClient) {
+        const saved = await saveSessionToSupabase(session);
+        if (saved) {
+          session._sb_id = saved.id;
+          localStorage.setItem('et_sessions', JSON.stringify(sessions));
+        }
+      }
+      renderSessions();
+      renderHistory();
+    }
+
+    playSoftBell();
+
+    // Start break phase
+    pomodoroPhase = 'break';
+    elapsed = 0;
+    elapsedBeforePause = 0;
+    startTime = Date.now();
+    statusLabel.textContent = t('breakTime');
+    statusLabel.className = 'time-label running-label';
+
+    updateDisplay();
+  }
+
+  function finishPomodoroBreak() {
+    playSoftBell();
+
+    // Stop timer and reset to ready state
+    clearInterval(interval);
+    interval = null;
+    running = false;
+    pomodoroPhase = 'work';
+    elapsed = 0;
+    startTime = null;
+    elapsedBeforePause = 0;
+
+    // Reset UI to ready-for-next-round state
+    const currentBtn = document.querySelector('.btn-primary span');
+    if (currentBtn) currentBtn.textContent = t('start');
+    const currentIcon = document.querySelector('.btn-primary svg');
+    if (currentIcon) currentIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+
+    statusLabel.textContent = t('pomodoro');
+    statusLabel.className = 'time-label idle-label';
+    timerBody.classList.remove('running');
+    timerWrap.classList.add('active');
+
+    updateDisplay();
+  }
+
+  pomodoroBtn.addEventListener('click', () => {
+    if (pomodoroMode) {
+      exitPomodoro();
+    } else {
+      enterPomodoro();
+    }
+  });
 
   // Re-create start/pause button to inject themed labels
   // Remove old listener and re-add with Easter eggs
@@ -3424,7 +3600,11 @@
       btnTextNew.textContent = t('resume');
       playIconNew.innerHTML = '<path d="M8 5v14l11-7z"/>';
       startPauseBtnNew.className = 'btn btn-primary' + (currentWorkType === 'sustaining' ? ' sustaining' : '');
-      statusLabel.textContent = getRandomIdleQuote();
+      if (pomodoroMode) {
+        statusLabel.textContent = pomodoroPhase === 'break' ? t('breakTime') : t('pomodoro');
+      } else {
+        statusLabel.textContent = getRandomIdleQuote();
+      }
       statusLabel.className = 'time-label paused-label';
       timerBody.classList.remove('running');
       timerWrap.classList.add('active');
@@ -3433,7 +3613,11 @@
       startTime = Date.now();
       btnTextNew.textContent = t('pause');
       playIconNew.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
-      statusLabel.textContent = activeRunningLabels[Math.floor(Math.random() * activeRunningLabels.length)];
+      if (pomodoroMode) {
+        statusLabel.textContent = pomodoroPhase === 'break' ? t('breakTime') : t('pomodoro');
+      } else {
+        statusLabel.textContent = activeRunningLabels[Math.floor(Math.random() * activeRunningLabels.length)];
+      }
       statusLabel.className = 'time-label running-label';
       timerBody.classList.add('running');
       timerWrap.classList.add('active');
@@ -3459,6 +3643,35 @@
     startTime = null;
     elapsedBeforePause = 0;
     chime60Played = false;
+
+    if (pomodoroMode) {
+      // In Pomodoro: save work phase if enough time, reset to 25:00 ready
+      if (pomodoroPhase === 'work' && savedElapsed >= 5) {
+        const session = { duration: savedElapsed, date: new Date().toISOString(), name: savedName, type: savedType };
+        sessions.push(session);
+        localStorage.setItem('et_sessions', JSON.stringify(sessions));
+        if (currentUser && supabaseClient) {
+          const saved = await saveSessionToSupabase(session);
+          if (saved) {
+            session._sb_id = saved.id;
+            localStorage.setItem('et_sessions', JSON.stringify(sessions));
+          }
+        }
+      }
+      pomodoroPhase = 'work';
+      btnTextNew.textContent = t('start');
+      playIconNew.innerHTML = '<path d="M8 5v14l11-7z"/>';
+      startPauseBtnNew.className = 'btn btn-primary' + (currentWorkType === 'sustaining' ? ' sustaining' : '');
+      statusLabel.textContent = t('pomodoro');
+      statusLabel.className = 'time-label idle-label';
+      timerBody.classList.remove('running');
+      timerWrap.classList.add('active');
+      updateDisplay();
+      renderSessions();
+      renderHistory();
+      return;
+    }
+
     sessionInput.value = '';
 
     // Reset work type toggle to Deep Work
