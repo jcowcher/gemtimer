@@ -1192,16 +1192,20 @@
   .dd-hour-bar.work { background: var(--gray-500); }
   .dd-hour-val { font-size: 0.55rem; color: var(--gray-400); flex-shrink: 0; white-space: nowrap; }
 
-  .dd-trend { display: flex; align-items: flex-end; gap: 2px; height: 60px; margin-bottom: 0.5rem; }
-  .dd-trend-bar-wrap { flex: 1; height: 100%; display: flex; align-items: flex-end; position: relative; }
-  .dd-trend-bar {
-    width: 100%; border-radius: 2px 2px 0 0; transition: height 0.3s; min-height: 1px;
+  .dd-trend-card {
+    background: #1a1a1a; border-radius: 12px; padding: 1rem; margin-bottom: 0.5rem;
   }
-  .dd-trend-bar-wrap:hover .dd-trend-tip { display: block; }
-  .dd-trend-tip {
-    display: none; position: absolute; bottom: calc(100% + 4px); left: 50%;
-    transform: translateX(-50%); background: var(--black); color: var(--white);
-    font-size: 0.6rem; padding: 2px 5px; border-radius: 3px; white-space: nowrap; z-index: 10;
+  .dd-trend-card .dd-section-title { color: #fff; }
+  .dd-trend-avg { font-size: 0.7rem; color: rgba(255,255,255,0.5); margin-bottom: 0.6rem; }
+  .dd-trend-chart { position: relative; width: 100%; height: 100px; }
+  .dd-trend-chart svg { width: 100%; height: 100%; overflow: visible; }
+  .dd-trend-labels { display: flex; justify-content: space-between; margin-top: 0.35rem; }
+  .dd-trend-lbl { font-size: 0.55rem; color: rgba(255,255,255,0.4); }
+  .dd-trend-dot { cursor: pointer; }
+  .dd-trend-tooltip {
+    position: absolute; background: #333; color: #fff; font-size: 0.6rem;
+    padding: 3px 7px; border-radius: 4px; white-space: nowrap; pointer-events: none;
+    transform: translate(-50%, -100%); margin-top: -8px; z-index: 10; display: none;
   }
 
   .dd-empty { text-align: center; color: var(--gray-400); font-size: 0.8rem; padding: 2rem 0; }
@@ -1263,17 +1267,19 @@
     background: none; border: none; color: var(--orange); font-size: 0.8rem;
     font-family: inherit; cursor: pointer; padding: 0;
     display: inline-flex; align-items: center; gap: 0.35rem;
-    align-self: flex-end;
   }
   .add-session-link:hover { text-decoration: underline; }
   .add-session-link * { pointer-events: none; }
   .pomodoro-link {
-    background: none; border: none; color: var(--orange); font-size: 0.8rem;
-    font-family: inherit; cursor: pointer; padding: 0; margin-left: auto;
-    display: inline-flex; align-items: center; gap: 0.35rem;
+    border: none; font-size: 0.7rem; font-weight: 600;
+    font-family: inherit; cursor: pointer; margin-left: auto;
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    background: var(--gray-100); color: var(--gray-500);
+    padding: 0.25rem 0.7rem; border-radius: 100px;
+    transition: background 0.15s, color 0.15s;
   }
-  .pomodoro-link:hover { text-decoration: underline; }
-  .pomodoro-link.active { font-weight: 600; text-decoration: underline; }
+  .pomodoro-link:hover { background: var(--gray-200); color: var(--gray-600); }
+  .pomodoro-link.active { background: #4a90d9; color: #fff; }
   .add-session-icon {
     display: inline-flex; align-items: center; justify-content: center;
     width: 18px; height: 18px; border-radius: 50%;
@@ -1618,8 +1624,8 @@
   <div class="session-section">
     <div class="section-header">
       <span class="section-title">Today's breakdown</span>
-      <button class="pomodoro-link" id="pomodoroBtn">Pomodoro</button>
       <button class="add-session-link" id="addSessionBtn"><span class="add-session-icon">+</span> Add a session</button>
+      <button class="pomodoro-link" id="pomodoroBtn">Pomodoro</button>
     </div>
     <div class="session-count-below" id="sessionCount"></div>
     <ul class="session-list" id="sessionList"></ul>
@@ -4230,21 +4236,69 @@
     }
     html += '</div>';
 
-    // Daily trend
+    // Daily trend — Whoop-style line chart
     if (trend.length > 1) {
-      html += '<div class="dd-section-title">Daily Trend</div>';
-      html += '<div class="dd-trend">';
-      trend.forEach(tr => {
-        const pctH = maxTrendSec > 0 ? (tr.secs / maxTrendSec * 100) : 0;
-        const opacity = maxTrendSec > 0 ? 0.3 + 0.7 * (tr.secs / maxTrendSec) : 0.3;
-        const d = new Date(tr.day + 'T12:00:00');
-        const tipLabel = d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ': ' + fmtTotal(Math.round(tr.secs));
-        html += '<div class="dd-trend-bar-wrap"><div class="dd-trend-bar" style="height:' + pctH + '%;background:rgba(255,102,0,' + opacity.toFixed(2) + ')"></div><div class="dd-trend-tip">' + tipLabel + '</div></div>';
+      const avgSec = trend.reduce((s, t) => s + t.secs, 0) / trend.length;
+      const padW = 0, chartH = 90;
+      const n = trend.length;
+      const stepX = n > 1 ? 100 / (n - 1) : 50;
+      const points = trend.map((tr, i) => {
+        const x = n > 1 ? i * stepX : 50;
+        const y = maxTrendSec > 0 ? chartH - (tr.secs / maxTrendSec) * (chartH - 10) - 5 : chartH - 5;
+        return { x, y, tr };
       });
-      html += '</div>';
+      const pathD = points.map((p, i) => (i === 0 ? 'M' : 'L') + p.x + ' ' + p.y).join(' ');
+      const areaD = pathD + ' L' + points[points.length - 1].x + ' ' + chartH + ' L' + points[0].x + ' ' + chartH + ' Z';
+      html += '<div class="dd-trend-card">';
+      html += '<div class="dd-section-title">Daily Trend</div>';
+      html += '<div class="dd-trend-avg">Avg ' + fmtTotal(Math.round(avgSec)) + ' / day</div>';
+      html += '<div class="dd-trend-chart"><div class="dd-trend-tooltip" id="ddTrendTip"></div>';
+      html += '<svg viewBox="0 0 100 ' + chartH + '" preserveAspectRatio="none">';
+      html += '<defs><linearGradient id="trendGrad" x1="0" y1="0" x2="0" y2="1">' +
+        '<stop offset="0%" stop-color="#ff6600" stop-opacity="0.3"/>' +
+        '<stop offset="100%" stop-color="#ff6600" stop-opacity="0.02"/></linearGradient></defs>';
+      html += '<path d="' + areaD + '" fill="url(#trendGrad)"/>';
+      html += '<path d="' + pathD + '" fill="none" stroke="#ff6600" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>';
+      points.forEach((p, i) => {
+        html += '<circle class="dd-trend-dot" cx="' + p.x + '" cy="' + p.y + '" r="1.5" fill="#ff6600" data-idx="' + i + '"/>';
+      });
+      html += '</svg></div>';
+      // Day + time labels
+      html += '<div class="dd-trend-labels">';
+      const labelStep = Math.max(1, Math.floor(n / 7));
+      for (let i = 0; i < n; i++) {
+        if (i === 0 || i === n - 1 || i % labelStep === 0) {
+          const d = new Date(trend[i].day + 'T12:00:00');
+          const dayStr = d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+          html += '<span class="dd-trend-lbl">' + dayStr + '<br>' + fmtTotal(Math.round(trend[i].secs)) + '</span>';
+        }
+      }
+      html += '</div></div>';
     }
 
     deepDiveContent.innerHTML = html;
+
+    // Tooltip interaction for trend dots
+    if (trend.length > 1) {
+      const chart = deepDiveContent.querySelector('.dd-trend-chart');
+      const tip = document.getElementById('ddTrendTip');
+      if (chart && tip) {
+        chart.querySelectorAll('.dd-trend-dot').forEach(dot => {
+          dot.addEventListener('mouseenter', function(e) {
+            const idx = parseInt(this.getAttribute('data-idx'), 10);
+            const tr = trend[idx];
+            const d = new Date(tr.day + 'T12:00:00');
+            tip.textContent = d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ': ' + fmtTotal(Math.round(tr.secs));
+            const rect = chart.getBoundingClientRect();
+            const dotRect = this.getBoundingClientRect();
+            tip.style.left = (dotRect.left - rect.left + dotRect.width / 2) + 'px';
+            tip.style.top = (dotRect.top - rect.top) + 'px';
+            tip.style.display = 'block';
+          });
+          dot.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
+        });
+      }
+    }
   }
 
   deepDiveBtn.addEventListener('click', () => {
