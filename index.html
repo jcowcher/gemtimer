@@ -1263,13 +1263,15 @@
   .feedback-toast.show { opacity: 1; transform: translateY(0); }
 
   /* Add Session */
-  .add-session-link {
-    background: none; border: none; color: var(--orange); font-size: 0.8rem;
-    font-family: inherit; cursor: pointer; padding: 0;
-    display: inline-flex; align-items: center; gap: 0.35rem;
+  .add-session-row {
+    width: 100%; background: none; border: 1px dashed var(--gray-200);
+    border-radius: 8px; color: var(--gray-400); font-size: 0.8rem;
+    font-family: inherit; cursor: pointer; padding: 0.5rem 0;
+    display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+    margin-bottom: 0.5rem; transition: border-color 0.15s, color 0.15s;
   }
-  .add-session-link:hover { text-decoration: underline; }
-  .add-session-link * { pointer-events: none; }
+  .add-session-row:hover { border-color: var(--orange); color: var(--orange); }
+  .add-session-row * { pointer-events: none; }
   .pomodoro-link {
     border: none; font-size: 0.7rem; font-weight: 600;
     font-family: inherit; cursor: pointer; margin-left: auto;
@@ -1624,11 +1626,11 @@
   <div class="session-section">
     <div class="section-header">
       <span class="section-title">Today's breakdown</span>
-      <button class="add-session-link" id="addSessionBtn"><span class="add-session-icon">+</span> Add a session</button>
       <button class="pomodoro-link" id="pomodoroBtn">Pomodoro</button>
     </div>
     <div class="session-count-below" id="sessionCount"></div>
     <ul class="session-list" id="sessionList"></ul>
+    <button class="add-session-row" id="addSessionBtn"><span class="add-session-icon">+</span> Add a session</button>
     <div class="name-totals" id="nameTotals"></div>
     <div class="daily-total">
       <div class="totals-row">
