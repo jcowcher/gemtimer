@@ -2162,6 +2162,22 @@
       sessions = [...cloudSessions, ...localOnly];
       // Sort by date so history renders correctly
       sessions.sort((a, b) => new Date(a.date) - new Date(b.date));
+      // Dedup: keep first occurrence, delete cloud duplicates
+      const seenKeys = new Set();
+      const dupIds = [];
+      sessions = sessions.filter(s => {
+        const key = s.date + '|' + s.duration + '|' + (s.name || '');
+        if (seenKeys.has(key)) {
+          if (s._sb_id) dupIds.push(s._sb_id);
+          return false;
+        }
+        seenKeys.add(key);
+        return true;
+      });
+      // Remove duplicates from Supabase
+      if (dupIds.length > 0) {
+        supabaseClient.from('timer_history').delete().in('id', dupIds).then(() => {});
+      }
       localStorage.setItem('et_sessions', JSON.stringify(sessions));
 
       renderSessions();
