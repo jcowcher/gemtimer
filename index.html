@@ -1193,19 +1193,24 @@
   .dd-hour-val { font-size: 0.55rem; color: var(--gray-400); flex-shrink: 0; white-space: nowrap; }
 
   .dd-trend-card {
-    background: var(--gray-50); border-radius: 8px; padding: 0.4rem 0.6rem; margin-bottom: 0.5rem;
+    background: #111; border-radius: 12px; padding: 0.75rem 0.5rem 0.5rem; margin-bottom: 0.5rem;
   }
-  .dd-trend-card .dd-section-title { color: var(--black); font-size: 0.65rem; margin-bottom: 0.1rem; }
-  .dd-trend-avg { font-size: 0.55rem; color: var(--gray-400); margin-bottom: 0.25rem; }
-  .dd-trend-chart { position: relative; width: 100%; height: 50px; }
-  .dd-trend-chart svg { width: 100%; height: 100%; overflow: visible; }
-  .dd-trend-labels { display: flex; justify-content: space-between; margin-top: 0.2rem; }
-  .dd-trend-lbl { font-size: 0.5rem; color: var(--gray-400); }
+  .dd-trend-header { display: flex; justify-content: space-between; align-items: baseline; padding: 0 0.25rem; margin-bottom: 0.5rem; }
+  .dd-trend-header .dd-trend-title { color: #fff; font-size: 0.8rem; font-weight: 600; }
+  .dd-trend-header .dd-trend-avg { font-size: 0.65rem; color: rgba(255,255,255,0.4); margin: 0; }
+  .dd-trend-wrap { position: relative; display: flex; gap: 0; }
+  .dd-trend-chart { position: relative; flex: 1; height: 100px; }
+  .dd-trend-chart svg { width: 100%; height: 100%; display: block; }
+  .dd-trend-yaxis { width: 30px; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; padding: 2px 4px 2px 0; }
+  .dd-trend-ytick { font-size: 0.5rem; color: rgba(255,255,255,0.3); line-height: 1; }
+  .dd-trend-labels { display: flex; justify-content: space-between; padding: 0.3rem 0.25rem 0; }
+  .dd-trend-lbl { font-size: 0.5rem; color: rgba(255,255,255,0.35); text-align: center; }
   .dd-trend-dot { cursor: pointer; }
   .dd-trend-tooltip {
-    position: absolute; background: #333; color: #fff; font-size: 0.6rem;
+    position: absolute; background: rgba(255,255,255,0.15); color: #fff; font-size: 0.6rem;
     padding: 3px 7px; border-radius: 4px; white-space: nowrap; pointer-events: none;
     transform: translate(-50%, -100%); margin-top: -8px; z-index: 10; display: none;
+    backdrop-filter: blur(4px);
   }
 
   .dd-empty { text-align: center; color: var(--gray-400); font-size: 0.8rem; padding: 2rem 0; }
@@ -4230,53 +4235,88 @@
       const workPct = b.avgSec < 180 ? 0 : Math.min(100, Math.round(b.avgSec / 3600 * 100));
       const label = ((h % 12) || 12) + (h < 12 ? 'a' : 'p');
       html += '<div class="dd-hour-row">' +
-        '<span class="dd-hour-label">' + label + '</span>' +
-        '<div class="dd-hour-bars">' +
-          '<div class="dd-hour-bar-line"><div class="dd-hour-bar-bg"><div class="dd-hour-bar focus" style="width:' + focusPct + '%"></div></div>' +
-            '<span class="dd-hour-val">' + (focusPct > 0 ? 'Focus ' + focusPct + '%' : '') + '</span></div>' +
-          '<div class="dd-hour-bar-line"><div class="dd-hour-bar-bg"><div class="dd-hour-bar work" style="width:' + workPct + '%"></div></div>' +
-            '<span class="dd-hour-val">' + (workPct > 0 ? 'Work ' + workPct + '%' : '') + '</span></div>' +
-        '</div></div>';
+        '<span class="dd-hour-label">' + label + '</span>';
+      if (focusPct > 0 || workPct > 0) {
+        html += '<div class="dd-hour-bars">';
+        if (focusPct > 0) html += '<div class="dd-hour-bar-line"><div class="dd-hour-bar-bg"><div class="dd-hour-bar focus" style="width:' + focusPct + '%"></div></div>' +
+            '<span class="dd-hour-val">Focus ' + focusPct + '%</span></div>';
+        if (workPct > 0) html += '<div class="dd-hour-bar-line"><div class="dd-hour-bar-bg"><div class="dd-hour-bar work" style="width:' + workPct + '%"></div></div>' +
+            '<span class="dd-hour-val">Work ' + workPct + '%</span></div>';
+        html += '</div>';
+      }
+      html += '</div>';
     }
     html += '</div>';
 
-    // Daily trend — Whoop-style line chart
+    // Daily trend — Opal-style area chart
     if (trend.length > 1) {
       const avgSec = trend.reduce((s, t) => s + t.secs, 0) / trend.length;
-      const padW = 0, chartH = 90;
+      const chartW = 100, chartH = 80, padT = 4, padB = 4;
       const n = trend.length;
-      const stepX = n > 1 ? 100 / (n - 1) : 50;
+      const maxH = Math.ceil(maxTrendSec / 3600);
+      const yMax = Math.max(maxH, 1) * 3600;
+      const stepX = n > 1 ? chartW / (n - 1) : chartW / 2;
+
+      // Compute points
       const points = trend.map((tr, i) => {
-        const x = n > 1 ? i * stepX : 50;
-        const y = maxTrendSec > 0 ? chartH - (tr.secs / maxTrendSec) * (chartH - 10) - 5 : chartH - 5;
+        const x = n > 1 ? i * stepX : chartW / 2;
+        const y = padT + (chartH - padT - padB) * (1 - tr.secs / yMax);
         return { x, y, tr };
       });
-      const pathD = points.map((p, i) => (i === 0 ? 'M' : 'L') + p.x + ' ' + p.y).join(' ');
-      const areaD = pathD + ' L' + points[points.length - 1].x + ' ' + chartH + ' L' + points[0].x + ' ' + chartH + ' Z';
+
+      // Smooth cubic bezier path
+      function smoothPath(pts) {
+        if (pts.length < 2) return 'M' + pts[0].x + ' ' + pts[0].y;
+        let d = 'M' + pts[0].x + ' ' + pts[0].y;
+        for (let i = 0; i < pts.length - 1; i++) {
+          const cp = (pts[i + 1].x - pts[i].x) * 0.3;
+          d += ' C' + (pts[i].x + cp) + ' ' + pts[i].y + ',' +
+            (pts[i + 1].x - cp) + ' ' + pts[i + 1].y + ',' +
+            pts[i + 1].x + ' ' + pts[i + 1].y;
+        }
+        return d;
+      }
+      const lineD = smoothPath(points);
+      const areaD = lineD + ' L' + points[points.length - 1].x + ' ' + chartH + ' L' + points[0].x + ' ' + chartH + ' Z';
+
+      // Y-axis ticks
+      const yTicks = [];
+      const yStep = maxH <= 3 ? 1 : maxH <= 8 ? 2 : 3;
+      for (let h = 0; h <= maxH; h += yStep) yTicks.push(h);
+
       html += '<div class="dd-trend-card">';
-      html += '<div class="dd-section-title">Daily Trend</div>';
-      html += '<div class="dd-trend-avg">Avg ' + fmtTotal(Math.round(avgSec)) + ' / day</div>';
+      html += '<div class="dd-trend-header"><span class="dd-trend-title">Daily Trend</span>' +
+        '<span class="dd-trend-avg">Avg ' + fmtTotal(Math.round(avgSec)) + ' / day</span></div>';
+      html += '<div class="dd-trend-wrap">';
       html += '<div class="dd-trend-chart"><div class="dd-trend-tooltip" id="ddTrendTip"></div>';
-      html += '<svg viewBox="0 0 100 ' + chartH + '" preserveAspectRatio="none">';
+      html += '<svg viewBox="0 0 ' + chartW + ' ' + chartH + '" preserveAspectRatio="none">';
       html += '<defs><linearGradient id="trendGrad" x1="0" y1="0" x2="0" y2="1">' +
-        '<stop offset="0%" stop-color="#ff6600" stop-opacity="0.3"/>' +
-        '<stop offset="100%" stop-color="#ff6600" stop-opacity="0.02"/></linearGradient></defs>';
+        '<stop offset="0%" stop-color="#ff6600" stop-opacity="0.35"/>' +
+        '<stop offset="100%" stop-color="#ff6600" stop-opacity="0.03"/></linearGradient></defs>';
+      // Grid lines
+      yTicks.forEach(h => {
+        const gy = padT + (chartH - padT - padB) * (1 - (h * 3600) / yMax);
+        html += '<line x1="0" y1="' + gy + '" x2="' + chartW + '" y2="' + gy + '" stroke="rgba(255,255,255,0.07)" stroke-width="0.3"/>';
+      });
       html += '<path d="' + areaD + '" fill="url(#trendGrad)"/>';
-      html += '<path d="' + pathD + '" fill="none" stroke="#ff6600" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>';
+      html += '<path d="' + lineD + '" fill="none" stroke="#ff6600" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>';
       points.forEach((p, i) => {
-        html += '<circle class="dd-trend-dot" cx="' + p.x + '" cy="' + p.y + '" r="1.5" fill="#ff6600" data-idx="' + i + '"/>';
+        html += '<circle class="dd-trend-dot" cx="' + p.x + '" cy="' + p.y + '" r="1.2" fill="#ff6600" data-idx="' + i + '"/>';
       });
       html += '</svg></div>';
-      // Day + time labels
+      // Y-axis labels
+      html += '<div class="dd-trend-yaxis">';
+      yTicks.slice().reverse().forEach(h => { html += '<span class="dd-trend-ytick">' + h + 'h</span>'; });
+      html += '</div></div>';
+      // Day labels
       html += '<div class="dd-trend-labels">';
-      const labelStep = Math.max(1, Math.floor(n / 7));
-      for (let i = 0; i < n; i++) {
-        if (i === 0 || i === n - 1 || i % labelStep === 0) {
-          const d = new Date(trend[i].day + 'T12:00:00');
-          const dayStr = d.toLocaleDateString([], { month: 'short', day: 'numeric' });
-          html += '<span class="dd-trend-lbl">' + dayStr + '<br>' + fmtTotal(Math.round(trend[i].secs)) + '</span>';
+      trend.forEach((tr, i) => {
+        const d = new Date(tr.day + 'T12:00:00');
+        const dayStr = d.toLocaleDateString([], { weekday: 'short' });
+        if (n <= 10 || i === 0 || i === n - 1 || i % Math.max(1, Math.floor(n / 7)) === 0) {
+          html += '<span class="dd-trend-lbl">' + dayStr + '</span>';
         }
-      }
+      });
       html += '</div></div>';
     }
 
