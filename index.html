@@ -1967,6 +1967,18 @@
   let sessions;
   try { sessions = JSON.parse(localStorage.getItem('et_sessions') || '[]'); }
   catch { sessions = []; }
+  // One-time dedup: remove sessions with identical date+duration+name
+  (function dedup() {
+    const seen = new Set();
+    const before = sessions.length;
+    sessions = sessions.filter(s => {
+      const key = s.date + '|' + s.duration + '|' + (s.name || '');
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    if (sessions.length < before) localStorage.setItem('et_sessions', JSON.stringify(sessions));
+  })();
   let weekOffset = 0; // 0 = current week, -1 = last week, etc.
   let currentUser = null;
   let supabaseClient = null;
