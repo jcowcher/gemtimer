@@ -1899,8 +1899,8 @@
     // Update work type toggle labels
     document.querySelectorAll('.work-type-toggle').forEach(toggle => {
       toggle.querySelectorAll('.work-type-btn').forEach(btn => {
-        if (btn.dataset.type === 'deep') btn.textContent = t('deepWork');
-        else if (btn.dataset.type === 'sustaining') btn.textContent = t('sustainingWork');
+        const text = btn.dataset.type === 'deep' ? t('deepWork') : btn.dataset.type === 'sustaining' ? t('sustainingWork') : null;
+        if (text) btn.childNodes[0].textContent = text;
       });
     });
 
