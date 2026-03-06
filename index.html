@@ -4222,7 +4222,6 @@
     const peakLabel = ((peakHour.hour % 12) || 12) + (peakHour.hour < 12 ? 'am' : 'pm');
 
     // Max for scaling
-    const maxHourSec = Math.max(...hourBuckets.map(b => b.totalSec), 1);
     const maxTodSec = Math.max(...todGroups.map(g => g.totalSec), 1);
     const maxTrendSec = Math.max(...trend.map(t => t.secs), 1);
 
