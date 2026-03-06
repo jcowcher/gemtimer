@@ -988,6 +988,16 @@
     margin-top: 0.25rem;
   }
 
+  .theme-tooltip {
+    display: none; position: absolute; bottom: calc(100% + 8px); left: 50%;
+    transform: translateX(-50%); background: #fff; color: var(--gray-500);
+    font-size: 0.65rem; font-weight: 400; padding: 0.5rem 0.7rem;
+    border-radius: 8px; box-shadow: 0 4px 12px rgba(255,102,0,0.08);
+    width: 220px; white-space: normal; line-height: 1.45; pointer-events: none; z-index: 20;
+    border: 1px solid rgba(255,102,0,0.15); text-align: center;
+  }
+  .theme-picker:hover .theme-tooltip { display: block; }
+
   .theme-input-wrap {
     position: relative;
     display: flex;
@@ -1620,6 +1630,7 @@
     </div>
 
     <div class="theme-picker" id="themePicker">
+      <span class="theme-tooltip">Enter a movie or TV show to get quotes from it while you work</span>
       <div class="theme-input-wrap">
         <input type="text" class="theme-input" id="themeInput"
           placeholder="Try a different quote theme..."
