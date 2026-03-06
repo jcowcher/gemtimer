@@ -1379,7 +1379,7 @@
   /* Work type toggle */
   .work-type-toggle {
     display: flex; gap: 0.25rem; background: var(--gray-100);
-    border-radius: 100px; padding: 2px; margin-bottom: 1.25rem;
+    border-radius: 100px; padding: 2px; margin-bottom: 1.25rem; overflow: visible;
   }
   .work-type-btn {
     background: none; border: none; padding: 0.35rem 0.85rem;
@@ -1389,7 +1389,7 @@
   }
   .work-type-btn.active-deep { background: var(--orange); color: var(--white); }
   .work-type-btn.active-sustaining { background: var(--gray-900); color: var(--white); }
-  .work-type-btn { position: relative; }
+  .work-type-btn { position: relative; overflow: visible; }
   .wt-tooltip {
     display: none; position: absolute; bottom: calc(100% + 8px); left: 50%;
     transform: translateX(-50%); background: #fff; color: var(--gray-600);
