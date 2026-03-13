@@ -1201,7 +1201,7 @@
   .dd-hour-bar-bg .dd-hour-bar { height: 100%; border-radius: 3px; transition: width 0.3s; }
   .dd-hour-bar.focus { background: #ff6600; }
   .dd-hour-bar.work { background: #fff; border: 1.5px solid #ff6600; border-radius: 3px; box-sizing: border-box; }
-  .dd-hour-val { font-size: 0.55rem; color: var(--gray-400); flex-shrink: 0; white-space: nowrap; }
+  .dd-hour-val { font-size: 0.65rem; color: var(--gray-400); flex-shrink: 0; white-space: nowrap; }
 
   .dd-trend-card {
     background: #111; border-radius: 12px; padding: 0.75rem 0.5rem 0.5rem; margin-bottom: 0.5rem;
@@ -1213,9 +1213,9 @@
   .dd-trend-chart { position: relative; flex: 1; height: 100px; }
   .dd-trend-chart svg { width: 100%; height: 100%; display: block; }
   .dd-trend-yaxis { width: 30px; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; padding: 2px 4px 2px 0; }
-  .dd-trend-ytick { font-size: 0.5rem; color: rgba(255,255,255,0.3); line-height: 1; }
+  .dd-trend-ytick { font-size: 0.6rem; color: rgba(255,255,255,0.3); line-height: 1; }
   .dd-trend-labels { display: flex; justify-content: space-between; padding: 0.3rem 0.25rem 0; }
-  .dd-trend-lbl { font-size: 0.5rem; color: rgba(255,255,255,0.35); text-align: center; }
+  .dd-trend-lbl { font-size: 0.6rem; color: rgba(255,255,255,0.35); text-align: center; }
   .dd-trend-dot { cursor: pointer; }
   .dd-trend-tooltip {
     position: absolute; background: rgba(255,255,255,0.15); color: #fff; font-size: 0.6rem;
@@ -1589,6 +1589,34 @@
 
   @media (max-width: 768px) {
     .site-footer { padding: 0.4rem 0.75rem; }
+  }
+
+  /* Prevent sticky hover states on touch devices */
+  @media (hover: none) {
+    .auth-btn:hover { border-color: var(--gray-200); color: var(--gray-700); }
+    .auth-avatar:hover { opacity: 1; }
+    .auth-dropdown button:hover { background: none; }
+    .nav-logo-btn:hover { background: var(--orange); }
+    .btn-primary:hover { background: var(--orange); transform: none; }
+    .btn-primary.sustaining:hover { background: var(--gray-700); }
+    .btn-secondary:hover { border-color: var(--gray-300); color: var(--gray-700); background: none; }
+    .session-delete:hover { color: var(--gray-400); }
+    .week-nav-btn:hover { background: none; color: var(--gray-500); }
+    .history-group-header:hover { background: none; }
+    .theme-clear:hover { color: var(--gray-400); }
+    .theme-submit:hover { background: var(--orange); }
+    .deep-dive-btn:hover { border-color: var(--gray-300); color: var(--gray-500); }
+    .dd-back:hover { color: var(--gray-500); }
+    .feedback-fab:hover { background: var(--gray-700); transform: none; }
+    .feedback-modal .feedback-cancel:hover { background: var(--gray-100); }
+    .feedback-modal .feedback-submit:hover { background: var(--orange); }
+    .add-session-row:hover { border-color: var(--gray-300); color: var(--gray-700); }
+    .pomodoro-link:hover { background: var(--gray-100); }
+    .add-session-tick:hover { background: var(--orange); transform: none; }
+    .add-session-close:hover { background: var(--black); }
+    .lang-picker-btn:hover { border-color: var(--gray-200); color: var(--gray-700); }
+    .lang-dropdown button:hover { background: none; }
+    .footer-link:hover { color: var(--gray-500); }
   }
 </style>
 </head>
