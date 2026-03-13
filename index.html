@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Elementary Timer — Focus Timer for Deep Work</title>
 <meta name="description" content="A minimalist visual focus timer inspired by the Minee Timer. Track deep work sessions, name your activities, and view weekly history. Elementary, my dear Watson.">
 <meta name="keywords" content="focus timer, pomodoro, deep work, productivity timer, visual timer, study timer">
@@ -61,6 +61,7 @@
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   }
 
   /* Nav */
@@ -1227,7 +1228,7 @@
 
   /* Feedback FAB & Modal */
   .feedback-fab {
-    position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999;
+    position: fixed; bottom: calc(1.5rem + env(safe-area-inset-bottom)); right: calc(1.5rem + env(safe-area-inset-right)); z-index: 9999;
     width: 48px; height: 48px; border-radius: 50%;
     background: var(--gray-700); color: var(--white); border: none;
     box-shadow: 0 2px 8px rgba(0,0,0,0.18); cursor: pointer;
@@ -1381,7 +1382,7 @@
   .add-session-tick:hover { background: var(--orange-light); transform: scale(1.06); }
 
   .add-session-close {
-    position: fixed; bottom: 2rem; left: 2rem;
+    position: fixed; bottom: calc(2rem + env(safe-area-inset-bottom)); left: calc(2rem + env(safe-area-inset-left));
     width: 44px; height: 44px; border-radius: 50%; border: none;
     background: var(--black); color: var(--white); font-size: 1.1rem;
     cursor: pointer; display: flex; align-items: center; justify-content: center;
