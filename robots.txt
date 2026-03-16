@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://elementarytimer.com/sitemap.xml
+Sitemap: https://gemtimer.com/sitemap.xml
