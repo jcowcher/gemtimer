@@ -1224,6 +1224,29 @@
     backdrop-filter: blur(4px);
   }
 
+  .dd-heatmap-card {
+    background: var(--gray-100); border-radius: 12px; padding: 0.75rem; margin-bottom: 0.5rem; overflow-x: auto;
+  }
+  .dd-heatmap-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.5rem; }
+  .dd-heatmap-title { color: var(--black); font-size: 0.8rem; font-weight: 600; }
+  .dd-heatmap-months { display: flex; font-size: 0.6rem; color: var(--gray-400); padding-left: 28px; margin-bottom: 2px; }
+  .dd-heatmap-months span { text-align: left; }
+  .dd-heatmap-body { display: flex; gap: 2px; }
+  .dd-heatmap-days { display: flex; flex-direction: column; gap: 2px; padding-right: 4px; justify-content: flex-start; }
+  .dd-heatmap-days span { font-size: 0.55rem; color: var(--gray-400); height: 11px; line-height: 11px; text-align: right; width: 22px; }
+  .dd-heatmap-grid { display: flex; gap: 2px; }
+  .dd-heatmap-col { display: flex; flex-direction: column; gap: 2px; }
+  .dd-heatmap-cell {
+    width: 11px; height: 11px; border-radius: 2px; background: var(--gray-200);
+  }
+  .dd-heatmap-cell[data-level="1"] { background: rgba(255,102,0,0.25); }
+  .dd-heatmap-cell[data-level="2"] { background: rgba(255,102,0,0.5); }
+  .dd-heatmap-cell[data-level="3"] { background: rgba(255,102,0,0.75); }
+  .dd-heatmap-cell[data-level="4"] { background: #ff6600; }
+  .dd-heatmap-legend { display: flex; align-items: center; justify-content: flex-end; gap: 3px; margin-top: 6px; font-size: 0.55rem; color: var(--gray-400); }
+  .dd-heatmap-legend .dd-heatmap-cell { width: 10px; height: 10px; cursor: default; }
+  .dd-heatmap-cell[title] { cursor: pointer; }
+
   .dd-empty { text-align: center; color: var(--gray-400); font-size: 0.8rem; padding: 2rem 0; }
 
   /* Feedback FAB & Modal */
@@ -4271,6 +4294,137 @@
     return Object.entries(dayMap).sort((a, b) => a[0].localeCompare(b[0])).map(([day, secs]) => ({ day, secs }));
   }
 
+  function buildHeatmapHTML(filtered, range) {
+    // Build daily totals map
+    const dailyMap = {};
+    filtered.forEach(s => {
+      const d = new Date(s.date);
+      const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      dailyMap[key] = (dailyMap[key] || 0) + s.duration;
+    });
+
+    // Determine date range
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    let startDate;
+    if (range === '30d') {
+      startDate = new Date(today);
+      startDate.setDate(startDate.getDate() - 29);
+    } else {
+      // "all" — go back to earliest session or 1 year, whichever is less
+      const dates = Object.keys(dailyMap).sort();
+      if (dates.length > 0) {
+        startDate = new Date(dates[0] + 'T00:00:00');
+        const oneYearAgo = new Date(today);
+        oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+        if (startDate < oneYearAgo) startDate = oneYearAgo;
+      } else {
+        startDate = new Date(today);
+        startDate.setDate(startDate.getDate() - 29);
+      }
+    }
+
+    // Rewind startDate to nearest Sunday (GitHub starts weeks on Sunday)
+    const startDay = startDate.getDay();
+    if (startDay !== 0) startDate.setDate(startDate.getDate() - startDay);
+
+    // Build weeks array
+    const weeks = [];
+    const cur = new Date(startDate);
+    while (cur <= today) {
+      const week = [];
+      for (let d = 0; d < 7; d++) {
+        const key = cur.getFullYear() + '-' + String(cur.getMonth() + 1).padStart(2, '0') + '-' + String(cur.getDate()).padStart(2, '0');
+        week.push({
+          date: new Date(cur),
+          key: key,
+          secs: dailyMap[key] || 0,
+          future: cur > today
+        });
+        cur.setDate(cur.getDate() + 1);
+      }
+      weeks.push(week);
+    }
+
+    // Determine intensity levels (quartiles of non-zero values)
+    const nonZero = [];
+    weeks.forEach(w => w.forEach(d => { if (d.secs > 0) nonZero.push(d.secs); }));
+    nonZero.sort((a, b) => a - b);
+    const q1 = nonZero[Math.floor(nonZero.length * 0.25)] || 1;
+    const q2 = nonZero[Math.floor(nonZero.length * 0.5)] || 1;
+    const q3 = nonZero[Math.floor(nonZero.length * 0.75)] || 1;
+
+    function getLevel(secs) {
+      if (secs <= 0) return 0;
+      if (secs <= q1) return 1;
+      if (secs <= q2) return 2;
+      if (secs <= q3) return 3;
+      return 4;
+    }
+
+    // Month labels
+    const months = [];
+    let lastMonth = -1;
+    weeks.forEach((w, wi) => {
+      const firstDay = w.find(d => !d.future && d.date >= startDate) || w[0];
+      const m = firstDay.date.getMonth();
+      if (m !== lastMonth) {
+        months.push({ idx: wi, label: firstDay.date.toLocaleDateString([], { month: 'short' }) });
+        lastMonth = m;
+      }
+    });
+
+    // Build HTML
+    let html = '<div class="dd-heatmap-card">';
+    html += '<div class="dd-heatmap-header"><span class="dd-heatmap-title">Activity</span></div>';
+
+    // Month labels row
+    html += '<div class="dd-heatmap-months">';
+    let mi = 0;
+    for (let wi = 0; wi < weeks.length; wi++) {
+      if (mi < months.length && months[mi].idx === wi) {
+        html += '<span style="width:13px;flex-shrink:0">' + months[mi].label + '</span>';
+        mi++;
+      } else {
+        html += '<span style="width:13px;flex-shrink:0"></span>';
+      }
+    }
+    html += '</div>';
+
+    html += '<div class="dd-heatmap-body">';
+    // Day labels
+    html += '<div class="dd-heatmap-days">';
+    const dayNames = ['', 'Mon', '', 'Wed', '', 'Fri', ''];
+    dayNames.forEach(n => { html += '<span>' + n + '</span>'; });
+    html += '</div>';
+
+    // Grid
+    html += '<div class="dd-heatmap-grid">';
+    weeks.forEach(w => {
+      html += '<div class="dd-heatmap-col">';
+      w.forEach(d => {
+        if (d.future) {
+          html += '<div class="dd-heatmap-cell" style="visibility:hidden"></div>';
+        } else {
+          const lvl = getLevel(d.secs);
+          const dateLabel = d.date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+          const timeLabel = d.secs > 0 ? fmtTotal(d.secs) : 'No sessions';
+          html += '<div class="dd-heatmap-cell" data-level="' + lvl + '" title="' + dateLabel + ': ' + timeLabel + '"></div>';
+        }
+      });
+      html += '</div>';
+    });
+    html += '</div></div>';
+
+    // Legend
+    html += '<div class="dd-heatmap-legend">Less ';
+    for (let l = 0; l <= 4; l++) html += '<div class="dd-heatmap-cell" data-level="' + l + '"></div>';
+    html += ' More</div>';
+
+    html += '</div>';
+    return html;
+  }
+
   function renderDeepDive() {
     const filtered = getFilteredSessions(ddRange);
     if (filtered.length === 0) {
@@ -4296,6 +4450,11 @@
     html += '<div class="dd-stat-card"><div class="dd-stat-label">Total Focus</div><div class="dd-stat-value">' + fmtTotal(totalFocusSec) + '</div></div>';
     html += '<div class="dd-stat-card"><div class="dd-stat-label">Peak Hour</div><div class="dd-stat-value">' + peakLabel + '</div></div>';
     html += '</div>';
+
+    // Heatmap for 30d and all ranges
+    if (ddRange === '30d' || ddRange === 'all') {
+      html += buildHeatmapHTML(filtered, ddRange);
+    }
 
     // Work type breakdown (Whoop-inspired)
     const deepTotal = filtered.filter(s => (s.type || 'deep') === 'deep').reduce((sum, s) => sum + s.duration, 0);
