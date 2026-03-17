@@ -8,7 +8,7 @@
 <meta name="keywords" content="focus timer, pomodoro, deep work, productivity timer, visual timer, study timer">
 <meta name="author" content="GemTimer">
 <meta name="theme-color" content="#FF6600">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' cdn.jsdelivr.net *.clerk.accounts.dev *.clerk.com clerk.gemtimer.com accounts.gemtimer.com clerk.elementarytimer.com accounts.elementarytimer.com *.cloudflareinsights.com challenges.cloudflare.com; style-src 'self' 'unsafe-inline' fonts.googleapis.com accounts.gemtimer.com accounts.elementarytimer.com *.clerk.accounts.dev; font-src fonts.gstatic.com accounts.gemtimer.com accounts.elementarytimer.com *.clerk.accounts.dev; connect-src mrphkxragldfngrkkuqs.supabase.co *.clerk.accounts.dev *.clerk.dev *.clerk.com clerk.gemtimer.com accounts.gemtimer.com clerk.elementarytimer.com accounts.elementarytimer.com; img-src 'self' data: img.clerk.com *.clerk.com accounts.gemtimer.com accounts.elementarytimer.com *.clerk.accounts.dev; worker-src 'self' blob:; frame-src challenges.cloudflare.com accounts.gemtimer.com accounts.elementarytimer.com *.clerk.accounts.dev;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' cdn.jsdelivr.net *.clerk.accounts.dev *.clerk.com clerk.gemtimer.com accounts.gemtimer.com *.cloudflareinsights.com challenges.cloudflare.com; style-src 'self' 'unsafe-inline' fonts.googleapis.com accounts.gemtimer.com *.clerk.accounts.dev; font-src fonts.gstatic.com accounts.gemtimer.com *.clerk.accounts.dev; connect-src mrphkxragldfngrkkuqs.supabase.co *.clerk.accounts.dev *.clerk.dev *.clerk.com clerk.gemtimer.com accounts.gemtimer.com; img-src 'self' data: img.clerk.com *.clerk.com accounts.gemtimer.com *.clerk.accounts.dev; worker-src 'self' blob:; frame-src challenges.cloudflare.com accounts.gemtimer.com *.clerk.accounts.dev;">
 
 <!-- Open Graph -->
 <meta property="og:type" content="website">
@@ -1794,11 +1794,35 @@
   </div>
 </footer>
 
-<!-- Clerk sign-in overlay -->
+<!-- Sign-in overlay -->
 <div id="clerkOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;">
-  <div style="position:relative;">
+  <div style="position:relative;background:var(--white);border-radius:12px;padding:2rem;width:340px;max-width:90vw;box-shadow:0 16px 48px rgba(0,0,0,0.2);">
     <button id="clerkClose" style="position:absolute;top:-12px;right:-12px;width:28px;height:28px;border-radius:50%;border:none;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.15);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;z-index:1;color:#555;">&times;</button>
-    <div id="clerkMount"></div>
+    <h2 style="font-size:1.15rem;font-weight:600;margin-bottom:1.25rem;text-align:center;color:var(--black);">Sign in to GemTimer</h2>
+    <form id="signInForm" autocomplete="on">
+      <div id="signInError" style="display:none;background:#fff0f0;border:1px solid #ffcdd2;color:#c62828;font-size:0.8rem;padding:0.5rem 0.75rem;border-radius:var(--radius);margin-bottom:0.75rem;"></div>
+      <label for="signInEmail" style="display:block;font-size:0.78rem;font-weight:500;color:var(--gray-700);margin-bottom:0.3rem;">Email</label>
+      <input id="signInEmail" name="email" type="email" autocomplete="username email" required
+        style="width:100%;padding:0.55rem 0.75rem;border:1px solid var(--gray-200);border-radius:var(--radius);font-family:inherit;font-size:0.85rem;outline:none;transition:border-color 0.15s;margin-bottom:0.75rem;"
+        onfocus="this.style.borderColor='var(--orange)'" onblur="this.style.borderColor='var(--gray-200)'" />
+      <div id="signInPasswordWrap" style="display:none;">
+        <label for="signInPassword" style="display:block;font-size:0.78rem;font-weight:500;color:var(--gray-700);margin-bottom:0.3rem;">Password</label>
+        <input id="signInPassword" name="password" type="password" autocomplete="current-password"
+          style="width:100%;padding:0.55rem 0.75rem;border:1px solid var(--gray-200);border-radius:var(--radius);font-family:inherit;font-size:0.85rem;outline:none;transition:border-color 0.15s;margin-bottom:0.75rem;"
+          onfocus="this.style.borderColor='var(--orange)'" onblur="this.style.borderColor='var(--gray-200)'" />
+      </div>
+      <div id="signInCodeWrap" style="display:none;">
+        <label for="signInCode" style="display:block;font-size:0.78rem;font-weight:500;color:var(--gray-700);margin-bottom:0.3rem;">Verification code</label>
+        <input id="signInCode" name="code" type="text" inputmode="numeric" autocomplete="one-time-code"
+          style="width:100%;padding:0.55rem 0.75rem;border:1px solid var(--gray-200);border-radius:var(--radius);font-family:inherit;font-size:0.85rem;outline:none;transition:border-color 0.15s;margin-bottom:0.75rem;"
+          onfocus="this.style.borderColor='var(--orange)'" onblur="this.style.borderColor='var(--gray-200)'" />
+      </div>
+      <button id="signInSubmit" type="submit"
+        style="width:100%;padding:0.6rem;background:var(--orange);color:#fff;border:none;border-radius:var(--radius);font-family:inherit;font-size:0.85rem;font-weight:600;cursor:pointer;transition:background 0.15s;"
+        onmouseover="this.style.background='var(--orange-light)'" onmouseout="this.style.background='var(--orange)'">Continue</button>
+    </form>
+    <div id="signInOAuth" style="margin-top:1rem;display:flex;flex-direction:column;gap:0.5rem;"></div>
+    <p id="signInToggle" style="text-align:center;font-size:0.78rem;color:var(--gray-500);margin-top:1rem;">Don't have an account? <a href="#" id="signInToggleLink" style="color:var(--orange);text-decoration:none;font-weight:500;">Sign up</a></p>
   </div>
 </div>
 
@@ -2163,7 +2187,7 @@
           const overlay = document.getElementById('clerkOverlay');
           if (overlay.style.display !== 'none') {
             overlay.style.display = 'none';
-            window.Clerk.unmountSignIn(document.getElementById('clerkMount'));
+            resetSignInForm();
           }
           initSupabase();
           await loadAndMergeFromSupabase();
@@ -2345,18 +2369,214 @@
     }
   }
 
-  // Wire up pre-rendered sign-in button immediately
+  // Custom sign-in flow
   let pendingSignIn = false;
+  let signInMode = 'sign_in'; // 'sign_in' or 'sign_up'
+  let signInAttempt = null;
+  let signUpAttempt = null;
+
+  function resetSignInForm() {
+    const form = document.getElementById('signInForm');
+    form.reset();
+    document.getElementById('signInError').style.display = 'none';
+    document.getElementById('signInPasswordWrap').style.display = 'none';
+    document.getElementById('signInCodeWrap').style.display = 'none';
+    document.getElementById('signInSubmit').textContent = 'Continue';
+    document.getElementById('signInSubmit').disabled = false;
+    document.getElementById('signInEmail').disabled = false;
+    signInAttempt = null;
+    signUpAttempt = null;
+    setSignInMode('sign_in');
+  }
+
+  function setSignInMode(mode) {
+    signInMode = mode;
+    const heading = document.querySelector('#clerkOverlay h2');
+    const toggleLink = document.getElementById('signInToggleLink');
+    const toggleText = document.getElementById('signInToggle');
+    if (mode === 'sign_up') {
+      heading.textContent = 'Create your account';
+      toggleText.innerHTML = 'Already have an account? <a href="#" id="signInToggleLink" style="color:var(--orange);text-decoration:none;font-weight:500;">Sign in</a>';
+    } else {
+      heading.textContent = 'Sign in to GemTimer';
+      toggleText.innerHTML = 'Don\'t have an account? <a href="#" id="signInToggleLink" style="color:var(--orange);text-decoration:none;font-weight:500;">Sign up</a>';
+    }
+    document.getElementById('signInToggleLink').addEventListener('click', (e) => {
+      e.preventDefault();
+      resetSignInForm();
+      setSignInMode(mode === 'sign_in' ? 'sign_up' : 'sign_in');
+    });
+  }
+
+  function showSignInError(msg) {
+    const el = document.getElementById('signInError');
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
   function openSignIn() {
     if (window.Clerk) {
+      resetSignInForm();
       document.getElementById('clerkOverlay').style.display = 'flex';
-      window.Clerk.mountSignIn(document.getElementById('clerkMount'), {
-        appearance: { variables: { colorPrimary: '#FF6600' } }
-      });
+      document.getElementById('signInEmail').focus();
+      // Render OAuth buttons if available
+      renderOAuthButtons();
     } else {
       pendingSignIn = true;
     }
   }
+
+  function renderOAuthButtons() {
+    const container = document.getElementById('signInOAuth');
+    container.innerHTML = '';
+    if (!window.Clerk || !window.Clerk.environment) return;
+    const strategies = (window.Clerk.environment.userSettings &&
+      window.Clerk.environment.userSettings.socialProviderStrategies) || [];
+    if (strategies.length === 0) return;
+    // Add divider
+    const divider = document.createElement('div');
+    divider.style.cssText = 'display:flex;align-items:center;gap:0.75rem;color:var(--gray-400);font-size:0.75rem;';
+    divider.innerHTML = '<div style="flex:1;height:1px;background:var(--gray-200);"></div>or<div style="flex:1;height:1px;background:var(--gray-200);"></div>';
+    container.appendChild(divider);
+    const providerNames = { oauth_google: 'Google', oauth_apple: 'Apple', oauth_github: 'GitHub', oauth_microsoft: 'Microsoft', oauth_facebook: 'Facebook' };
+    strategies.forEach(strategy => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      const name = providerNames[strategy] || strategy.replace('oauth_', '');
+      btn.textContent = 'Continue with ' + name;
+      btn.style.cssText = 'width:100%;padding:0.55rem;background:none;border:1px solid var(--gray-200);border-radius:var(--radius);font-family:inherit;font-size:0.82rem;font-weight:500;color:var(--gray-700);cursor:pointer;transition:all 0.15s;';
+      btn.onmouseover = function() { this.style.borderColor = 'var(--gray-400)'; };
+      btn.onmouseout = function() { this.style.borderColor = 'var(--gray-200)'; };
+      btn.addEventListener('click', async () => {
+        try {
+          await window.Clerk.client.signIn.authenticateWithRedirect({
+            strategy: strategy,
+            redirectUrl: window.location.origin + '/sso-callback',
+            redirectUrlComplete: window.location.origin
+          });
+        } catch (e) {
+          showSignInError(e.errors ? e.errors[0].longMessage || e.errors[0].message : 'OAuth failed');
+        }
+      });
+      container.appendChild(btn);
+    });
+  }
+
+  document.getElementById('signInForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('signInEmail').value.trim();
+    const password = document.getElementById('signInPassword').value;
+    const code = document.getElementById('signInCode').value.trim();
+    const submitBtn = document.getElementById('signInSubmit');
+    const errorEl = document.getElementById('signInError');
+    errorEl.style.display = 'none';
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Loading...';
+
+    try {
+      if (signInMode === 'sign_up') {
+        // Sign-up flow
+        if (!signUpAttempt) {
+          signUpAttempt = await window.Clerk.client.signUp.create({
+            emailAddress: email,
+            password: password || undefined
+          });
+          if (signUpAttempt.status === 'complete') {
+            await window.Clerk.setActive({ session: signUpAttempt.createdSessionId });
+            return;
+          }
+          // Needs email verification
+          if (signUpAttempt.status === 'missing_requirements') {
+            const needsPassword = signUpAttempt.requiredFields && signUpAttempt.requiredFields.includes('password');
+            if (needsPassword && !password) {
+              document.getElementById('signInPasswordWrap').style.display = 'block';
+              submitBtn.textContent = 'Create account';
+              submitBtn.disabled = false;
+              return;
+            }
+            await signUpAttempt.prepareEmailAddressVerification({ strategy: 'email_code' });
+            document.getElementById('signInEmail').disabled = true;
+            document.getElementById('signInPasswordWrap').style.display = 'none';
+            document.getElementById('signInCodeWrap').style.display = 'block';
+            document.getElementById('signInCode').focus();
+            submitBtn.textContent = 'Verify';
+            submitBtn.disabled = false;
+            return;
+          }
+        } else if (code) {
+          const result = await signUpAttempt.attemptEmailAddressVerification({ code: code });
+          if (result.status === 'complete') {
+            await window.Clerk.setActive({ session: result.createdSessionId });
+            return;
+          }
+        }
+        submitBtn.textContent = signUpAttempt ? 'Verify' : 'Create account';
+        submitBtn.disabled = false;
+        return;
+      }
+
+      // Sign-in flow
+      if (!signInAttempt) {
+        // First step: try email + password or email-only
+        const params = { identifier: email };
+        if (password) params.password = password;
+        signInAttempt = await window.Clerk.client.signIn.create(params);
+      } else if (code) {
+        // Verify OTP code
+        signInAttempt = await signInAttempt.attemptFirstFactor({ strategy: 'email_code', code: code });
+      } else if (password) {
+        // Submit password for first factor
+        signInAttempt = await signInAttempt.attemptFirstFactor({ strategy: 'password', password: password });
+      }
+
+      if (signInAttempt.status === 'complete') {
+        await window.Clerk.setActive({ session: signInAttempt.createdSessionId });
+        return;
+      }
+
+      // Needs first factor
+      if (signInAttempt.status === 'needs_first_factor') {
+        const factors = signInAttempt.supportedFirstFactors || [];
+        const hasPassword = factors.some(f => f.strategy === 'password');
+        const hasEmailCode = factors.some(f => f.strategy === 'email_code');
+
+        if (hasPassword && !password) {
+          document.getElementById('signInPasswordWrap').style.display = 'block';
+          document.getElementById('signInPassword').focus();
+          document.getElementById('signInEmail').disabled = true;
+          submitBtn.textContent = 'Sign in';
+          submitBtn.disabled = false;
+          return;
+        }
+        if (hasEmailCode) {
+          const emailFactor = factors.find(f => f.strategy === 'email_code');
+          await signInAttempt.prepareFirstFactor({ strategy: 'email_code', emailAddressId: emailFactor.emailAddressId });
+          document.getElementById('signInEmail').disabled = true;
+          document.getElementById('signInPasswordWrap').style.display = 'none';
+          document.getElementById('signInCodeWrap').style.display = 'block';
+          document.getElementById('signInCode').focus();
+          submitBtn.textContent = 'Verify';
+          submitBtn.disabled = false;
+          return;
+        }
+      }
+
+      submitBtn.textContent = 'Continue';
+      submitBtn.disabled = false;
+    } catch (err) {
+      const msg = err.errors ? (err.errors[0].longMessage || err.errors[0].message) : 'Something went wrong. Please try again.';
+      showSignInError(msg);
+      submitBtn.textContent = signInAttempt ? 'Sign in' : 'Continue';
+      submitBtn.disabled = false;
+    }
+  });
+
+  document.getElementById('signInToggleLink').addEventListener('click', (e) => {
+    e.preventDefault();
+    resetSignInForm();
+    setSignInMode(signInMode === 'sign_in' ? 'sign_up' : 'sign_in');
+  });
+
   const earlySignInBtn = document.getElementById('signInBtn');
   if (earlySignInBtn) earlySignInBtn.addEventListener('click', openSignIn);
 
@@ -2376,15 +2596,15 @@
     }, 100);
   }
 
-  // Close Clerk overlay
+  // Close sign-in overlay
   document.getElementById('clerkClose').addEventListener('click', () => {
     document.getElementById('clerkOverlay').style.display = 'none';
-    if (window.Clerk) window.Clerk.unmountSignIn(document.getElementById('clerkMount'));
+    resetSignInForm();
   });
   document.getElementById('clerkOverlay').addEventListener('click', (e) => {
     if (e.target === e.currentTarget) {
       document.getElementById('clerkOverlay').style.display = 'none';
-      if (window.Clerk) window.Clerk.unmountSignIn(document.getElementById('clerkMount'));
+      resetSignInForm();
     }
   });
 
