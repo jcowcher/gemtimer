@@ -979,12 +979,27 @@
   }
 
   /* Theme picker */
+  .theme-toggle {
+    background: none;
+    border: none;
+    font-family: inherit;
+    font-size: 0.72rem;
+    color: var(--gray-400);
+    cursor: pointer;
+    padding: 0.25rem 0;
+    margin-top: 0.25rem;
+    transition: color 0.15s;
+  }
+  .theme-toggle:hover { color: var(--gray-700); }
+
   .theme-picker {
     position: relative;
     width: 100%;
     max-width: 300px;
     margin-top: 0.25rem;
+    display: none;
   }
+  .theme-picker.open { display: block; }
 
   .theme-tooltip {
     display: none; position: absolute; bottom: calc(100% + 8px); left: 50%;
@@ -1916,6 +1931,7 @@
       </button>
     </div>
 
+    <button class="theme-toggle" id="themeToggle">Film or TV quotes</button>
     <div class="theme-picker" id="themePicker">
       <span class="theme-tooltip">Enter a movie or TV show to get quotes from it while you work</span>
       <div class="theme-input-wrap">
@@ -5149,6 +5165,15 @@
   });
 
   // ── Theme Switcher ──────────────────────────────────
+  document.getElementById('themeToggle').addEventListener('click', function() {
+    var picker = document.getElementById('themePicker');
+    picker.classList.toggle('open');
+    if (picker.classList.contains('open')) {
+      this.style.display = 'none';
+      document.getElementById('themeInput').focus();
+    }
+  });
+
   const themeInput = document.getElementById('themeInput');
   const themeSuggestions = document.getElementById('themeSuggestions');
   const themeClear = document.getElementById('themeClear');
@@ -5287,6 +5312,8 @@
   const savedTheme = localStorage.getItem('et_quote_theme');
   if (savedTheme && QUOTE_THEMES[savedTheme]) {
     switchTheme(savedTheme);
+    document.getElementById('themePicker').classList.add('open');
+    document.getElementById('themeToggle').style.display = 'none';
   }
 
   statusLabel.textContent = getRandomIdleQuote();
