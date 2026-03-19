@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>GemTimer — The clock runs. Know how your time's spent.</title>
 <meta name="description" content="The clock runs. Know how your time's spent. Track deep work and sustaining work with GemTimer.">
-<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="apple-touch-icon" href="/favicon.png">
 <meta name="keywords" content="focus timer, pomodoro, deep work, productivity timer, visual timer, study timer">
 <meta name="author" content="GemTimer">
 <meta name="theme-color" content="#FF6600">
@@ -1741,11 +1742,19 @@
 
   @media (max-width: 768px) {
     .landing-inner { padding: 0 20px; }
-    .landing-hero { grid-template-columns: 1fr; gap: 32px; padding: 28px 0 20px; }
-    .landing-hero-text h1 { font-size: 30px; }
+    .landing-hero { grid-template-columns: 1fr; gap: 16px; padding: 20px 0 12px; }
+    .landing-hero-text h1 { font-size: 28px; margin-bottom: 10px; }
+    .landing-timer-preview { padding-top: 0; }
+    .landing-timer-wrap { width: 180px; height: 180px; }
+    .landing-time-digits { font-size: 2rem; }
+    .landing-wt-toggle { margin-bottom: 0.5rem; }
+    .landing-wt-btn { font-size: 0.7rem; padding: 0.3rem 0.75rem; }
     .landing-modes-grid { grid-template-columns: 1fr; }
-    .landing-nav { padding: 12px 20px; }
-    .landing-modes { padding: 12px 0 40px; }
+    .landing-nav { padding: 10px 20px; }
+    .landing-modes { padding: 8px 0 24px; }
+    .landing-modes-label { margin: -8px 0 12px; }
+    .landing-mode-card { padding: 16px; }
+    .landing-mode-card p { font-size: 13px; }
   }
 
   .site-footer {
