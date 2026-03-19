@@ -345,11 +345,11 @@
   }
 
   .timer-fill-inner {
-    position: absolute;
-    inset: 0;
+    width: 100%;
+    height: 100%;
     border-radius: 50%;
-    /* Subtle inner ring for depth */
-    box-shadow: inset 0 2px 6px rgba(0,0,0,0.06);
+    background: var(--white);
+    transform: scale(0.88);
   }
 
   /* Hide old SVG elements */
@@ -380,9 +380,9 @@
 
   .time-digits.visible {
     opacity: 1;
-    color: var(--white);
+    color: var(--black);
     font-weight: 700;
-    text-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    text-shadow: none;
   }
 
   .timer-wrap:hover .time-digits,
@@ -401,19 +401,18 @@
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: rgba(255,255,255,0.8);
+    color: var(--gray-500);
     margin-top: 1.5rem;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    text-shadow: none;
     transition: opacity 0.4s ease;
   }
 
   .time-label.idle-label {
     color: var(--gray-400);
-    text-shadow: none;
   }
 
   .time-label.running-label { display: none; }
-  .time-label.paused-label { color: var(--white); font-weight: 600; text-shadow: 0 1px 3px rgba(0,0,0,0.12); }
+  .time-label.paused-label { color: var(--gray-700); font-weight: 600; }
 
   /* Pulse glow when running */
   .timer-body.running {
