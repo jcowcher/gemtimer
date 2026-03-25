@@ -1231,7 +1231,7 @@
     background: var(--white);
     z-index: 9999;
     overflow: hidden;
-    padding: 24px 40px 32px;
+    padding: 16px 40px 0;
     flex-direction: column;
   }
   .deep-dive-panel.open { display: flex; }
@@ -1240,7 +1240,7 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    margin: 16px auto 16px;
+    margin: 10px auto 10px;
     max-width: 1100px;
     width: 100%;
     box-sizing: border-box;
@@ -1275,7 +1275,7 @@
     max-width: 1100px;
     width: 100%;
     margin: 0 auto;
-    padding: 0 0 16px;
+    padding: 0 0 10px;
     box-sizing: border-box;
   }
   .dd-nav::after {
@@ -1327,10 +1327,11 @@
   .dd-range-btn.active { background: var(--white); color: var(--black); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
 
   .dd-overlay-body { max-width: 1100px; margin: 0 auto; flex: 1; overflow: hidden; display: flex; flex-direction: column; width: 100%; box-sizing: border-box; padding-bottom: 24px; }
-  .dd-overlay-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 32px; flex: 1; overflow: hidden; min-height: 0; }
-  .dd-trend-bottom { flex-shrink: 0; padding-top: 8px; min-height: 120px; }
-  .dd-overlay-cell { min-width: 0; overflow: hidden; }
-  .dd-stats { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; }
+  .dd-heatmap-top { flex-shrink: 0; margin-bottom: 8px; }
+  .dd-overlay-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 32px; flex: 1; overflow: hidden; min-height: 0; }
+  .dd-trend-bottom { flex-shrink: 0; padding-top: 4px; }
+  .dd-overlay-cell { min-width: 0; overflow: hidden; display: flex; flex-direction: column; }
+  .dd-stats { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; }
   .dd-stat-card {
     flex: 1; background: var(--gray-50); border: 1px solid var(--gray-100);
     border-radius: var(--radius); padding: 0.6rem 0.75rem;
@@ -1341,7 +1342,7 @@
   .dd-section-title { font-size: 0.72rem; font-weight: 600; color: var(--gray-500); letter-spacing: 0.02em; margin: 0 0 0.4rem; }
   .dd-section-title:first-child { margin-top: 0; }
 
-  .dd-tod-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem; }
+  .dd-tod-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.35rem; margin-bottom: 0.35rem; }
   .dd-tod-card {
     background: var(--gray-50); border: 1px solid var(--gray-100);
     border-radius: var(--radius); padding: 0.6rem 0.75rem;
@@ -1360,14 +1361,14 @@
   .dd-hour-row { display: flex; align-items: center; gap: 0.4rem; min-height: 0; }
   .dd-hour-label { width: 28px; font-size: 0.6rem; color: var(--gray-400); text-align: right; flex-shrink: 0; align-self: flex-start; line-height: 14px; }
   .dd-hour-bars { flex: 1; display: flex; flex-direction: column; gap: 1px; }
-  .dd-hour-bar-line { display: flex; align-items: center; gap: 0.3rem; height: 8px; }
+  .dd-hour-bar-line { display: flex; align-items: center; gap: 0.2rem; height: 7px; }
   .dd-hour-bar-bg { flex: 1; height: 5px; background: var(--gray-50); border-radius: 3px; overflow: hidden; }
   .dd-hour-bar-bg .dd-hour-bar { height: 100%; border-radius: 3px; transition: width 0.3s; }
   .dd-hour-bar.focus { background: #ff6600; }
   .dd-hour-bar.work { background: #fff; border: 1.5px solid #ff6600; border-radius: 3px; box-sizing: border-box; }
-  .dd-hour-val { font-size: 0.65rem; color: var(--gray-400); flex-shrink: 0; white-space: nowrap; }
+  .dd-hour-val { font-size: 0.55rem; color: var(--gray-400); flex-shrink: 0; white-space: nowrap; }
 
-  .dd-activity-list { display: flex; flex-direction: column; gap: 4px; overflow: hidden; max-height: 160px; }
+  .dd-activity-list { display: flex; flex-direction: column; gap: 3px; overflow: hidden; flex: 1; min-height: 0; }
   .dd-activity-row { display: flex; align-items: center; gap: 0.5rem; }
   .dd-activity-name { font-size: 0.72rem; color: var(--black); width: 30%; max-width: 160px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: default; }
   .dd-activity-bar-wrap { flex: 1; min-width: 40px; height: 8px; background: var(--gray-100); border-radius: 4px; overflow: hidden; }
@@ -1381,7 +1382,7 @@
   .dd-trend-header .dd-trend-title { color: var(--black); font-size: 0.8rem; font-weight: 600; }
   .dd-trend-header .dd-trend-avg { font-size: 0.65rem; color: var(--gray-500); margin: 0; }
   .dd-trend-wrap { position: relative; display: flex; gap: 0; }
-  .dd-trend-chart { position: relative; flex: 1; height: 60px; }
+  .dd-trend-chart { position: relative; flex: 1; height: 50px; }
   .dd-trend-chart svg { width: 100%; height: 100%; display: block; }
   .dd-trend-yaxis { width: 30px; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; padding: 2px 4px 2px 0; }
   .dd-trend-ytick { font-size: 0.6rem; color: var(--gray-400); line-height: 1; }
@@ -1396,7 +1397,7 @@
   }
 
   .dd-heatmap-card {
-    background: var(--gray-100); border-radius: 12px; padding: 0.75rem; margin-bottom: 0.5rem; overflow: auto;
+    background: var(--gray-100); border-radius: 12px; padding: 0.75rem; margin-bottom: 0; overflow: hidden;
   }
   .dd-heatmap-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.5rem; }
   .dd-heatmap-title { color: var(--black); font-size: 0.8rem; font-weight: 600; }
@@ -1697,7 +1698,7 @@
 
     .timer-wrap { width: 280px; height: 280px; }
     .time-digits { font-size: 2.8rem; }
-    .deep-dive-panel { padding: 16px 16px 32px; }
+    .deep-dive-panel { padding: 12px 16px 0; }
     .dd-overlay-grid { grid-template-columns: 1fr; overflow-y: auto; }
     .dd-stats { flex-direction: column; }
     .dd-tod-grid { grid-template-columns: 1fr; }
@@ -5494,8 +5495,9 @@
     r1Left += '<div class="dd-stat-card"><div class="dd-stat-label">Total Focus</div><div class="dd-stat-value">' + fmtTotal(totalFocusSec) + '</div></div>';
     r1Left += '<div class="dd-stat-card"><div class="dd-stat-label">Peak Hour</div><div class="dd-stat-value">' + peakLabel + '</div></div>';
     r1Left += '</div>';
-    if (ddRange === '30d' || ddRange === 'all') {
-      r1Left += buildHeatmapHTML(filtered, ddRange);
+    var heatmapHTML = '';
+    if (ddRange === 'all') {
+      heatmapHTML = buildHeatmapHTML(filtered, ddRange);
     }
 
     // === ROW 1 RIGHT: Work Type ===
@@ -5646,11 +5648,13 @@
       r3Right += '</div></div>';
     }
 
-    // === ASSEMBLE: 2 main rows + bottom row ===
-    var html = '<div class="dd-overlay-body"><div class="dd-overlay-grid">';
+    // === ASSEMBLE: optional heatmap row + 2-col grid + trend bottom ===
+    var html = '<div class="dd-overlay-body">';
+    if (heatmapHTML) html += '<div class="dd-heatmap-top">' + heatmapHTML + '</div>';
+    html += '<div class="dd-overlay-grid">';
     html += '<div class="dd-overlay-cell">' + r1Left + '</div>';
     html += '<div class="dd-overlay-cell">' + r1Right + '</div>';
-    html += '<div class="dd-overlay-cell" style="overflow:hidden">' + r2Left + '</div>';
+    html += '<div class="dd-overlay-cell">' + r2Left + '</div>';
     html += '<div class="dd-overlay-cell">' + r2Right + '</div>';
     html += '</div>';
     if (r3Right) html += '<div class="dd-trend-bottom">' + r3Right + '</div>';
