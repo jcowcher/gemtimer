@@ -61,15 +61,18 @@
     --radius: 8px;
   }
 
+  html { overflow: hidden; height: 100%; }
   body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     background: var(--white);
     color: var(--black);
-    min-height: 100vh;
+    height: 100%;
+    overflow: auto;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   }
+  body.dd-open { overflow: hidden; }
 
   /* Nav */
   nav {
@@ -5693,6 +5696,7 @@
 
   deepDiveBtn.addEventListener('click', () => {
     deepDivePanel.classList.add('open');
+    document.body.classList.add('dd-open');
     var av=document.getElementById('authAvatar');
     var ddAv=document.getElementById('ddNavAvatar');
     if(av&&ddAv){var tn=av.childNodes[0];ddAv.textContent=tn?tn.textContent.trim():'';}
@@ -5701,6 +5705,7 @@
 
   ddClose.addEventListener('click', () => {
     deepDivePanel.classList.remove('open');
+    document.body.classList.remove('dd-open');
   });
 
   ddRangeToggle.addEventListener('click', (e) => {
