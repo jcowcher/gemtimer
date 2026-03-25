@@ -1235,7 +1235,7 @@
     margin-left: auto;
     margin-right: auto;
   }
-  .dd-title { font-size: 0.95rem; font-weight: 600; color: var(--black); flex: 1; }
+  .dd-title { font-size: 1.15rem; font-weight: 700; color: var(--black); flex: 1; }
   .dd-close {
     position: fixed;
     bottom: 24px;
@@ -1272,13 +1272,13 @@
   .dd-overlay-body { max-width: 1100px; margin: 0 auto; }
   .dd-overlay-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 32px; }
   .dd-overlay-cell { min-width: 0; }
-  .dd-stats { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; }
+  .dd-stats { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; }
   .dd-stat-card {
     flex: 1; background: var(--gray-50); border: 1px solid var(--gray-100);
     border-radius: var(--radius); padding: 0.6rem 0.75rem;
   }
   .dd-stat-label { font-size: 0.65rem; color: var(--gray-500); margin-bottom: 0.2rem; }
-  .dd-stat-value { font-size: 1.1rem; font-weight: 700; color: var(--black); }
+  .dd-stat-value { font-size: 1.5rem; font-weight: 700; color: var(--black); }
 
   .dd-section-title { font-size: 0.72rem; font-weight: 600; color: var(--gray-500); letter-spacing: 0.02em; margin: 0 0 0.4rem; }
   .dd-section-title:first-child { margin-top: 0; }
@@ -1311,13 +1311,13 @@
 
   .dd-activity-list { display: flex; flex-direction: column; gap: 4px; }
   .dd-activity-row { display: flex; align-items: center; gap: 0.5rem; }
-  .dd-activity-name { font-size: 0.72rem; color: var(--black); width: 90px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dd-activity-name { font-size: 0.72rem; color: var(--black); width: 140px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .dd-activity-bar-wrap { flex: 1; height: 8px; background: var(--gray-100); border-radius: 4px; overflow: hidden; }
   .dd-activity-bar { height: 100%; background: var(--orange); border-radius: 4px; transition: width 0.3s; }
   .dd-activity-dur { font-size: 0.68rem; color: var(--gray-500); min-width: 36px; text-align: right; font-variant-numeric: tabular-nums; }
 
   .dd-trend-card {
-    background: var(--gray-100); border-radius: 12px; padding: 0.5rem 0.5rem 0.4rem; margin-bottom: 0;
+    background: var(--gray-100); border-radius: 12px; padding: 0.5rem 0.5rem 0.4rem; margin-bottom: 0; overflow: hidden;
   }
   .dd-trend-header { display: flex; justify-content: space-between; align-items: baseline; padding: 0 0.25rem; margin-bottom: 0.5rem; }
   .dd-trend-header .dd-trend-title { color: var(--black); font-size: 0.8rem; font-weight: 600; }
@@ -1347,10 +1347,10 @@
   .dd-heatmap-body { display: flex; gap: 2px; }
   .dd-heatmap-days { display: flex; flex-direction: column; gap: 2px; padding-right: 4px; justify-content: flex-start; flex-shrink: 0; }
   .dd-heatmap-days span { font-size: 0.55rem; color: var(--gray-400); height: 11px; line-height: 11px; text-align: right; width: 22px; }
-  .dd-heatmap-grid { display: flex; gap: 2px; }
+  .dd-heatmap-grid { display: flex; gap: 2px; flex-shrink: 0; }
   .dd-heatmap-col { display: flex; flex-direction: column; gap: 2px; }
   .dd-heatmap-cell {
-    width: 11px; height: 11px; border-radius: 2px; background: var(--gray-200);
+    width: 11px; min-width: 11px; height: 11px; border-radius: 2px; background: var(--gray-200);
   }
   .dd-heatmap-cell[data-level="1"] { background: rgba(255,102,0,0.25); }
   .dd-heatmap-cell[data-level="2"] { background: rgba(255,102,0,0.5); }
@@ -1595,8 +1595,8 @@
     padding: 0.35rem 0;
   }
   .dd-type-label {
-    font-size: 0.68rem; font-weight: 600; text-transform: uppercase;
-    letter-spacing: 0.04em; width: 80px; flex-shrink: 0;
+    font-size: 0.68rem; font-weight: 600;
+    letter-spacing: 0.02em; width: 80px; flex-shrink: 0;
   }
   .dd-type-label.deep { color: var(--orange); }
   .dd-type-label.sustaining { color: var(--gray-900); }
@@ -5440,7 +5440,7 @@
       '<span class="dd-type-pct">' + sustainPct + '%</span></div>';
     r1Right += '</div>';
 
-    // === ROW 2 LEFT: Time of Day ===
+    // === ROW 2 LEFT: Time of Day + By Activity ===
     var r2Left = '';
     r2Left += '<div class="dd-section-title">Time of day</div>';
     r2Left += '<div class="dd-tod-grid">';
@@ -5455,31 +5455,7 @@
     });
     r2Left += '</div>';
 
-    // === ROW 2 RIGHT: Hour by Hour (skip empty) ===
-    var r2Right = '';
-    r2Right += '<div class="dd-section-title">Hour by hour</div>';
-    r2Right += '<div class="dd-hour-grid">';
-    for (var h = 0; h < 24; h++) {
-      var b = hourBuckets[h];
-      if (b.totalSec === 0) continue;
-      var focusPct = b.avgDeepSec < 180 ? 0 : Math.min(100, Math.round(b.avgDeepSec / 3600 * 100));
-      var workPct = b.avgSec < 180 ? 0 : Math.min(100, Math.round(b.avgSec / 3600 * 100));
-      var label = ((h % 12) || 12) + (h < 12 ? 'a' : 'p');
-      r2Right += '<div class="dd-hour-row">' +
-        '<span class="dd-hour-label">' + label + '</span>';
-      if (focusPct > 0 || workPct > 0) {
-        r2Right += '<div class="dd-hour-bars">';
-        if (focusPct > 0) r2Right += '<div class="dd-hour-bar-line"><div class="dd-hour-bar-bg"><div class="dd-hour-bar focus" style="width:' + focusPct + '%"></div></div>' +
-            '<span class="dd-hour-val">Focus ' + focusPct + '%</span></div>';
-        if (workPct > 0) r2Right += '<div class="dd-hour-bar-line"><div class="dd-hour-bar-bg"><div class="dd-hour-bar work" style="width:' + workPct + '%"></div></div>' +
-            '<span class="dd-hour-val">Work ' + workPct + '%</span></div>';
-        r2Right += '</div>';
-      }
-      r2Right += '</div>';
-    }
-    r2Right += '</div>';
-
-    // === ROW 3 LEFT: By Activity ===
+    // By Activity (appended to same cell)
     var activityMap = {};
     filtered.forEach(function(s) {
       var name = s.name || 'Unnamed';
@@ -5488,18 +5464,40 @@
     var activities = Object.entries(activityMap).sort(function(a, b) { return b[1] - a[1]; });
     var maxActivitySec = activities.length > 0 ? activities[0][1] : 1;
 
-    var r3Left = '';
-    r3Left += '<div class="dd-section-title">By activity</div>';
-    r3Left += '<div class="dd-activity-list">';
+    r2Left += '<div class="dd-section-title">By activity</div>';
+    r2Left += '<div class="dd-activity-list">';
     activities.forEach(function(entry) {
       var name = entry[0], secs = entry[1];
       var pct = Math.round(secs / maxActivitySec * 100);
-      r3Left += '<div class="dd-activity-row">' +
+      r2Left += '<div class="dd-activity-row">' +
         '<span class="dd-activity-name" title="' + name.replace(/"/g, '&quot;') + '">' + name + '</span>' +
         '<div class="dd-activity-bar-wrap"><div class="dd-activity-bar" style="width:' + pct + '%"></div></div>' +
         '<span class="dd-activity-dur">' + fmtTotal(secs) + '</span></div>';
     });
-    r3Left += '</div>';
+    r2Left += '</div>';
+
+    // === ROW 2 RIGHT: Hour by Hour (skip empty/near-zero) ===
+    var r2Right = '';
+    r2Right += '<div class="dd-section-title">Hour by hour</div>';
+    r2Right += '<div class="dd-hour-grid">';
+    for (var h = 0; h < 24; h++) {
+      var b = hourBuckets[h];
+      if (b.totalSec < 60) continue;
+      var focusPct = b.avgDeepSec < 180 ? 0 : Math.min(100, Math.round(b.avgDeepSec / 3600 * 100));
+      var workPct = b.avgSec < 180 ? 0 : Math.min(100, Math.round(b.avgSec / 3600 * 100));
+      if (focusPct === 0 && workPct === 0) continue;
+      var label = ((h % 12) || 12) + (h < 12 ? 'a' : 'p');
+      r2Right += '<div class="dd-hour-row">' +
+        '<span class="dd-hour-label">' + label + '</span>';
+      r2Right += '<div class="dd-hour-bars">';
+      if (focusPct > 0) r2Right += '<div class="dd-hour-bar-line"><div class="dd-hour-bar-bg"><div class="dd-hour-bar focus" style="width:' + focusPct + '%"></div></div>' +
+          '<span class="dd-hour-val">Focus ' + focusPct + '%</span></div>';
+      if (workPct > 0) r2Right += '<div class="dd-hour-bar-line"><div class="dd-hour-bar-bg"><div class="dd-hour-bar work" style="width:' + workPct + '%"></div></div>' +
+          '<span class="dd-hour-val">Work ' + workPct + '%</span></div>';
+      r2Right += '</div>';
+      r2Right += '</div>';
+    }
+    r2Right += '</div>';
 
     // === ROW 3 RIGHT: Daily Trend (compact) ===
     var r3Right = '';
@@ -5569,14 +5567,13 @@
       r3Right += '</div></div>';
     }
 
-    // === ASSEMBLE: 3 rows × 2 columns ===
+    // === ASSEMBLE: 2 main rows + bottom row ===
     var html = '<div class="dd-overlay-body"><div class="dd-overlay-grid">';
     html += '<div class="dd-overlay-cell">' + r1Left + '</div>';
     html += '<div class="dd-overlay-cell">' + r1Right + '</div>';
-    html += '<div class="dd-overlay-cell">' + r2Left + '</div>';
+    html += '<div class="dd-overlay-cell" style="overflow:hidden">' + r2Left + '</div>';
     html += '<div class="dd-overlay-cell">' + r2Right + '</div>';
-    html += '<div class="dd-overlay-cell">' + r3Left + '</div>';
-    html += '<div class="dd-overlay-cell">' + r3Right + '</div>';
+    html += '<div class="dd-overlay-cell" style="grid-column:1/-1">' + r3Right + '</div>';
     html += '</div></div>';
 
     deepDiveContent.innerHTML = html;
