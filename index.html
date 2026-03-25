@@ -1865,11 +1865,17 @@
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
+    display: flex;
+    gap: 0.4rem;
     font-size: 14px;
     font-weight: 400;
     color: var(--gray-500);
     letter-spacing: 0.05em;
     font-variant-numeric: tabular-nums;
+  }
+  .clock-half { width: 5.5rem; }
+  .clock-date { text-align: right; }
+  .clock-time { text-align: left;
   }
   .landing-why-link {
     font-size: 14px;
@@ -2013,13 +2019,13 @@
     text-transform: none;
     letter-spacing: normal;
     text-align: right;
-    width: 6rem;
+    width: 7rem;
   }
   .landing-footer-copy {
     color: var(--gray-500);
     font-size: 0.72rem;
     text-align: left;
-    width: 6rem;
+    width: 7rem;
   }
 
   .footer-left { position: relative; }
@@ -3217,7 +3223,7 @@
         var d = new Date();
         var date = d.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' });
         var time = d.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        clockEl.innerHTML = date + '&ensp;' + time;
+        clockEl.innerHTML = '<span class="clock-half clock-date">' + date + '</span><span class="clock-half clock-time">' + time + '</span>';
       }
       tickClock();
       setInterval(tickClock, 1000);
