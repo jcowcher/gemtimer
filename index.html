@@ -1403,16 +1403,17 @@
   }
   .dd-heatmap-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.5rem; }
   .dd-heatmap-title { color: var(--black); font-size: 0.8rem; font-weight: 600; }
-  .dd-heatmap-months { display: flex; font-size: 0.6rem; color: var(--gray-400); padding-left: 28px; margin-bottom: 2px; gap: 2px; }
+  .dd-heatmap-months { display: flex; font-size: 0.6rem; color: var(--gray-400); padding-left: 32px; margin-bottom: 2px; gap: 2px; }
   .dd-heatmap-months span { text-align: left; width: 13px; }
   .dd-heatmap-body { display: flex; gap: 2px; width: fit-content; }
   .dd-heatmap-days { display: flex; flex-direction: column; gap: 2px; padding-right: 4px; justify-content: flex-start; flex-shrink: 0; }
-  .dd-heatmap-days span { font-size: 0.55rem; color: var(--gray-400); height: 11px; line-height: 11px; text-align: right; width: 22px; }
+  .dd-heatmap-days span { font-size: 0.5rem; color: var(--gray-400); height: 11px; line-height: 11px; text-align: right; width: 26px; }
   .dd-heatmap-grid { display: flex; gap: 2px; flex-shrink: 0; width: fit-content; }
   .dd-heatmap-col { display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
   .dd-heatmap-cell {
     width: 11px; min-width: 11px; max-width: 11px; height: 11px; border-radius: 2px; background: var(--gray-200); flex-shrink: 0;
   }
+  .dd-heatmap-cell[data-level="0"] { background: var(--gray-200); }
   .dd-heatmap-cell[data-level="1"] { background: rgba(255,102,0,0.25); }
   .dd-heatmap-cell[data-level="2"] { background: rgba(255,102,0,0.5); }
   .dd-heatmap-cell[data-level="3"] { background: rgba(255,102,0,0.75); }
@@ -5406,15 +5407,17 @@
       return 4;
     }
 
-    // Month labels
+    // Month labels — place at the first week containing a day in that month
     const months = [];
     let lastMonth = -1;
     weeks.forEach((w, wi) => {
-      const firstDay = w[0];
-      const m = firstDay.date.getMonth();
-      if (m !== lastMonth) {
-        months.push({ idx: wi, label: firstDay.date.toLocaleDateString([], { month: 'short' }) });
-        lastMonth = m;
+      for (let di = 0; di < 7; di++) {
+        const m = w[di].date.getMonth();
+        if (m !== lastMonth) {
+          lastMonth = m;
+          months.push({ idx: wi, label: w[di].date.toLocaleDateString([], { month: 'short' }) });
+          break;
+        }
       }
     });
 
@@ -5436,9 +5439,9 @@
     html += '</div>';
 
     html += '<div class="dd-heatmap-body">';
-    // Day labels
+    // Day labels — all 7 days
     html += '<div class="dd-heatmap-days">';
-    const dayNames = ['', 'Mon', '', 'Wed', '', 'Fri', ''];
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     dayNames.forEach(n => { html += '<span>' + n + '</span>'; });
     html += '</div>';
 
@@ -5448,12 +5451,14 @@
       html += '<div class="dd-heatmap-col">';
       w.forEach(d => {
         if (d.future) {
-          html += '<div class="dd-heatmap-cell"></div>';
+          html += '<div class="dd-heatmap-cell" data-level="0"></div>';
+        } else if (d.secs <= 0) {
+          const dateLabel = d.date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+          html += '<div class="dd-heatmap-cell" data-level="0" title="' + dateLabel + ': No sessions"></div>';
         } else {
           const lvl = getLevel(d.secs);
           const dateLabel = d.date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-          const timeLabel = d.secs > 0 ? fmtTotal(d.secs) : 'No sessions';
-          html += '<div class="dd-heatmap-cell" data-level="' + lvl + '" title="' + dateLabel + ': ' + timeLabel + '"></div>';
+          html += '<div class="dd-heatmap-cell" data-level="' + lvl + '" title="' + dateLabel + ': ' + fmtTotal(d.secs) + '"></div>';
         }
       });
       html += '</div>';
