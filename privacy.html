@@ -42,19 +42,16 @@
   }
 
   .nav-logo-btn {
-    background: var(--orange);
-    color: #fff;
-    font-size: 0.78rem;
-    font-weight: 600;
-    padding: 0.4rem 0.85rem;
-    border-radius: 100px;
+    font-weight: 500;
+    font-size: 20px;
+    letter-spacing: -0.5px;
+    color: var(--black);
     text-decoration: none;
-    letter-spacing: -0.01em;
-    white-space: nowrap;
-    transition: background 0.15s;
   }
 
-  .nav-logo-btn:hover { background: var(--orange-light); }
+  .nav-logo-btn span { color: var(--orange); }
+
+  .nav-logo-btn:hover { text-decoration: none; }
 
   .content {
     max-width: 640px;
@@ -118,20 +115,20 @@
 <body>
 
 <nav>
-  <a class="nav-logo-btn" href="/">GemTimer</a>
+  <a class="nav-logo-btn" href="/">Gem<span>Timer</span></a>
 </nav>
 
 <div class="content">
   <h1>Privacy Policy</h1>
-  <p class="last-updated">Last updated: February 23, 2026</p>
+  <p class="last-updated">Last updated: March 25, 2026</p>
 
   <p>GemTimer ("we", "us", or "the app") is a minimalist focus timer for deep work. We are committed to protecting your privacy and being transparent about how we handle your data.</p>
 
   <h2>What Data We Collect</h2>
   <p>We collect the minimum data necessary to provide the app's functionality:</p>
   <ul>
-    <li><strong>Account information:</strong> If you choose to sign in, we collect your email address and name via Clerk authentication. Signing in is optional.</li>
-    <li><strong>Session data:</strong> When you use the timer, we store session duration, session name, and timestamp. If you are signed in, this data is stored in our Supabase database. If you are not signed in, it is stored only in your browser's localStorage.</li>
+    <li><strong>Account information:</strong> We collect your email address and name via Clerk authentication when you sign in.</li>
+    <li><strong>Session data:</strong> When you use the timer, we store session duration, session name, and timestamp in our Supabase database.</li>
     <li><strong>Preferences:</strong> Your selected language and quote theme are stored in your browser's localStorage.</li>
   </ul>
 
@@ -146,7 +143,7 @@
 
   <h2>Data Storage</h2>
   <ul>
-    <li><strong>Browser localStorage:</strong> Session history, language preference, and quote theme are stored locally in your browser. This data never leaves your device unless you sign in.</li>
+    <li><strong>Browser localStorage:</strong> Preferences such as language and quote theme are stored locally in your browser. This data never leaves your device.</li>
     <li><strong>Supabase (cloud):</strong> If you sign in, your session data is stored in a Supabase-hosted PostgreSQL database. Your data is associated with your user ID and is only accessible to you.</li>
     <li><strong>Clerk (authentication):</strong> Account authentication is handled by Clerk. Please refer to <a href="https://clerk.com/privacy" target="_blank" rel="noopener">Clerk's Privacy Policy</a> for details on how they handle authentication data.</li>
   </ul>
