@@ -1619,6 +1619,7 @@
     padding: 14px 40px;
     max-width: 1100px;
     margin: 0 auto;
+    position: relative;
   }
   .landing-logo {
     font-weight: 500;
@@ -1800,6 +1801,9 @@
 
   /* Landing modes section */
   .landing-clock {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
     font-size: 14px;
     font-weight: 400;
     color: var(--gray-500);
@@ -1861,7 +1865,7 @@
     transition: opacity 0.2s;
   }
   .why-overlay-close:hover { opacity: 0.7; }
-  .landing-modes { padding: 16px 0 32px; }
+  .landing-modes { padding: 16px 40px 32px; max-width: 1100px; margin: 0 auto; }
   .landing-modes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
   .landing-mode-card {
     background: var(--white);
@@ -1885,7 +1889,7 @@
     .landing-wt-btn { font-size: 0.7rem; padding: 0.3rem 0.75rem; }
     .landing-modes-grid { grid-template-columns: 1fr; }
     .landing-nav { padding: 10px 20px; }
-    .landing-modes { padding: 8px 0 24px; }
+    .landing-modes { padding: 8px 20px 24px; }
     .why-overlay { padding: 60px 20px 80px; }
     .why-overlay-content h2 { font-size: 26px; }
     .landing-mode-card { padding: 16px; }
@@ -2050,19 +2054,20 @@
       </div>
     </section>
 
-    <section class="landing-modes">
-      <div class="landing-modes-grid">
-        <div class="landing-mode-card">
-          <h3>Deep Work</h3>
-          <p>Intense, distraction-free focus on a cognitively demanding task — writing code, building a financial model, crafting a presentation.</p>
-        </div>
-        <div class="landing-mode-card">
-          <h3>Sustaining</h3>
-          <p>Lower-intensity work that keeps things moving — email, Slack, meetings, admin, planning.</p>
-        </div>
-      </div>
-    </section>
   </div>
+
+  <section class="landing-modes">
+    <div class="landing-modes-grid">
+      <div class="landing-mode-card">
+        <h3>Deep Work</h3>
+        <p>Intense, distraction-free focus on a cognitively demanding task — writing code, building a financial model, crafting a presentation.</p>
+      </div>
+      <div class="landing-mode-card">
+        <h3>Sustaining</h3>
+        <p>Lower-intensity work that keeps things moving — email, Slack, meetings, admin, planning.</p>
+      </div>
+    </div>
+  </section>
 
   <div class="why-overlay" id="whyOverlay">
     <div class="why-overlay-content">
