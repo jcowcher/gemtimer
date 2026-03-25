@@ -1315,7 +1315,10 @@
     justify-content: center;
     user-select: none;
     letter-spacing: -0.04em;
+    cursor: pointer;
+    transition: opacity 0.15s;
   }
+  .dd-nav .auth-avatar:hover { opacity: 0.85; }
 
   .dd-range-toggle {
     display: flex; gap: 0.25rem; background: var(--gray-100);
@@ -2853,6 +2856,18 @@
     }
   }
 
+  function handleSignOut() {
+    if (running) {
+      clearInterval(interval);
+      interval = null;
+      running = false;
+      elapsed = 0;
+      startTime = null;
+      elapsedBeforePause = 0;
+    }
+    if (window.Clerk) window.Clerk.signOut();
+  }
+
   function updateAuthUI() {
     const authArea = document.getElementById('authArea');
     const landing = document.getElementById('landingPage');
@@ -2874,7 +2889,7 @@
         e.stopPropagation();
         document.getElementById('authDropdown').classList.toggle('open');
       });
-      document.getElementById('signOutBtn').addEventListener('click', () => window.Clerk.signOut());
+      document.getElementById('signOutBtn').addEventListener('click', handleSignOut);
     } else {
       // Show landing, hide app
       if (landing) landing.style.display = 'block';
@@ -5705,6 +5720,8 @@
     if(av&&ddAv){var tn=av.childNodes[0];ddAv.textContent=tn?tn.textContent.trim():'';}
     renderDeepDive();
   });
+
+  document.getElementById('ddNavAvatar').addEventListener('click', handleSignOut);
 
   ddClose.addEventListener('click', () => {
     deepDivePanel.classList.remove('open');
