@@ -1993,7 +1993,7 @@
   }
   .landing-footer-center {
     display: flex;
-    gap: 1rem;
+    gap: 0.5rem;
     align-items: center;
   }
   .landing-footer-center .venture-badge {
@@ -3200,7 +3200,7 @@
         var d = new Date();
         var date = d.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' });
         var time = d.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        clockEl.innerHTML = date + '&emsp;&emsp;' + time;
+        clockEl.innerHTML = date + '&ensp;' + time;
       }
       tickClock();
       setInterval(tickClock, 1000);
@@ -3231,7 +3231,7 @@
     var d=new Date();
     var date=d.toLocaleDateString('en-US',{month:'numeric',day:'numeric',year:'numeric'});
     var time=d.toLocaleTimeString('en-US',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
-    navDate.innerHTML=date+'&emsp;&emsp;'+time;
+    navDate.innerHTML=date+'&ensp;'+time;
   }
   tickNav();setInterval(tickNav,1000);
 
