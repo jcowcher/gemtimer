@@ -1326,10 +1326,11 @@
   }
   .dd-range-btn.active { background: var(--white); color: var(--black); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
 
-  .dd-overlay-body { max-width: 1100px; margin: 0 auto; flex: 1; overflow: hidden; display: flex; flex-direction: column; width: 100%; box-sizing: border-box; padding-bottom: 24px; }
+  #deepDiveContent { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+  .dd-overlay-body { max-width: 1100px; margin: 0 auto; flex: 1; overflow: hidden; display: flex; flex-direction: column; width: 100%; box-sizing: border-box; }
   .dd-heatmap-top { flex-shrink: 0; margin-bottom: 8px; }
   .dd-overlay-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 32px; flex: 1; overflow: hidden; min-height: 0; }
-  .dd-trend-bottom { flex-shrink: 0; padding-top: 4px; }
+  .dd-trend-bottom { flex-shrink: 0; padding-top: 4px; padding-bottom: 16px; }
   .dd-overlay-cell { min-width: 0; overflow: hidden; display: flex; flex-direction: column; }
   .dd-stats { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; }
   .dd-stat-card {
@@ -1368,7 +1369,7 @@
   .dd-hour-bar.work { background: #fff; border: 1.5px solid #ff6600; border-radius: 3px; box-sizing: border-box; }
   .dd-hour-val { font-size: 0.55rem; color: var(--gray-400); flex-shrink: 0; white-space: nowrap; }
 
-  .dd-activity-list { display: flex; flex-direction: column; gap: 3px; overflow: hidden; flex: 1; min-height: 0; }
+  .dd-activity-list { display: flex; flex-direction: column; gap: 3px; overflow: hidden; max-height: 126px; }
   .dd-activity-row { display: flex; align-items: center; gap: 0.5rem; }
   .dd-activity-name { font-size: 0.72rem; color: var(--black); width: 30%; max-width: 160px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: default; }
   .dd-activity-bar-wrap { flex: 1; min-width: 40px; height: 8px; background: var(--gray-100); border-radius: 4px; overflow: hidden; }
@@ -1699,7 +1700,7 @@
     .timer-wrap { width: 280px; height: 280px; }
     .time-digits { font-size: 2.8rem; }
     .deep-dive-panel { padding: 12px 16px 0; }
-    .dd-overlay-grid { grid-template-columns: 1fr; overflow-y: auto; }
+    .dd-overlay-grid { grid-template-columns: 1fr; overflow: hidden; }
     .dd-stats { flex-direction: column; }
     .dd-tod-grid { grid-template-columns: 1fr; }
     .dd-hour-grid { gap: 0; }
@@ -5547,7 +5548,7 @@
 
     r2Left += '<div class="dd-section-title">By activity</div>';
     r2Left += '<div class="dd-activity-list">';
-    activities.forEach(function(entry) {
+    activities.slice(0, 6).forEach(function(entry) {
       var name = entry[0], secs = entry[1];
       var pct = Math.round(secs / maxActivitySec * 100);
       r2Left += '<div class="dd-activity-row">' +
