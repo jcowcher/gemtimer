@@ -1997,17 +1997,23 @@
     left: 50%;
     transform: translateX(-50%);
     display: flex;
-    gap: 0.5rem;
+    gap: 0.35rem;
     align-items: center;
+  }
+  .landing-footer-sep {
+    color: var(--gray-400);
+    font-size: 0.72rem;
   }
   .landing-footer-center .venture-badge {
     font-size: 0.72rem;
     text-transform: none;
     letter-spacing: normal;
+    text-align: right;
   }
   .landing-footer-copy {
     color: var(--gray-500);
     font-size: 0.72rem;
+    text-align: left;
   }
 
   .footer-left { position: relative; }
@@ -2183,6 +2189,7 @@
     </div>
     <div class="landing-footer-center">
       <a class="venture-badge" href="https://gemka.co" target="_blank" rel="noopener">A GemKa venture</a>
+      <span class="landing-footer-sep">&middot;</span>
       <span class="landing-footer-copy">&copy; 2026 Gemka</span>
     </div>
     <div class="footer-right">
