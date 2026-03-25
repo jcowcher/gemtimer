@@ -5396,8 +5396,9 @@
     }
 
     // Month labels — place at the first week containing a day in that month
+    // Skip the partial starting month (week 0 is always a rewind artifact)
     const months = [];
-    let lastMonth = -1;
+    let lastMonth = weeks[0] ? weeks[0][0].date.getMonth() : -1;
     weeks.forEach((w, wi) => {
       for (let di = 0; di < 7; di++) {
         const m = w[di].date.getMonth();
