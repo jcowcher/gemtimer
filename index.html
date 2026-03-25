@@ -4965,20 +4965,21 @@
   function aggregateByHourOfDay(hourlyMap) {
     const deepBuckets = new Array(24).fill(0);
     const sustainBuckets = new Array(24).fill(0);
-    const activeDays = new Set();
+    const activeDaysPerHour = Array.from({length: 24}, () => new Set());
     Object.entries(hourlyMap).forEach(([key, val]) => {
+      const day = key.split(':')[0];
       const hour = parseInt(key.split(':')[1], 10);
       deepBuckets[hour] += val.deep;
       sustainBuckets[hour] += val.sustaining;
-      activeDays.add(key.split(':')[0]);
+      activeDaysPerHour[hour].add(day);
     });
-    const totalDays = Math.max(activeDays.size, 1);
     return deepBuckets.map((deepSec, i) => {
       const sustainSec = sustainBuckets[i];
       const totalSec = deepSec + sustainSec;
+      const days = Math.max(activeDaysPerHour[i].size, 1);
       return { hour: i, deepSec, sustainSec, totalSec,
-        avgDeepSec: deepSec / totalDays,
-        avgSec: totalSec / totalDays };
+        avgDeepSec: deepSec / days,
+        avgSec: totalSec / days };
     });
   }
 
