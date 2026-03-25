@@ -5562,16 +5562,16 @@
     for (var h = 0; h < 24; h++) {
       var b = hourBuckets[h];
       if (b.totalSec < 60) continue;
-      var deepPct = Math.min(100, Math.round(b.avgDeepSec / 3600 * 100));
-      var sustainPct = Math.min(100, Math.round((b.avgSec - b.avgDeepSec) / 3600 * 100));
-      var totalPct = Math.min(100, deepPct + sustainPct);
+      var hDeepPct = Math.min(100, Math.round(b.avgDeepSec / 3600 * 100));
+      var hSustainPct = Math.min(100, Math.round((b.avgSec - b.avgDeepSec) / 3600 * 100));
+      var totalPct = Math.min(100, hDeepPct + hSustainPct);
       if (totalPct === 0) continue;
       var label = ((h % 12) || 12) + (h < 12 ? 'a' : 'p');
       r2Right += '<div class="dd-hour-row">' +
         '<span class="dd-hour-label">' + label + '</span>' +
         '<div class="dd-hour-bar-bg">';
-      if (deepPct > 0) r2Right += '<div class="dd-hour-bar deep" style="width:' + deepPct + '%"></div>';
-      if (sustainPct > 0) r2Right += '<div class="dd-hour-bar sustaining" style="width:' + sustainPct + '%"></div>';
+      if (hDeepPct > 0) r2Right += '<div class="dd-hour-bar deep" style="width:' + hDeepPct + '%"></div>';
+      if (hSustainPct > 0) r2Right += '<div class="dd-hour-bar sustaining" style="width:' + hSustainPct + '%"></div>';
       r2Right += '</div>' +
         '<span class="dd-hour-val">' + totalPct + '%</span></div>';
     }
