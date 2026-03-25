@@ -99,6 +99,8 @@
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
+    display: flex;
+    gap: 0.75rem;
     font-size: 14px;
     color: var(--gray-500);
     font-weight: 400;
@@ -1228,8 +1230,9 @@
     z-index: 9999;
     overflow: hidden;
     padding: 24px 40px 32px;
+    flex-direction: column;
   }
-  .deep-dive-panel.open { display: block; }
+  .deep-dive-panel.open { display: flex; }
 
   .dd-header {
     display: flex;
@@ -1274,9 +1277,9 @@
   }
   .dd-range-btn.active { background: var(--white); color: var(--black); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
 
-  .dd-overlay-body { max-width: 1100px; margin: 0 auto; }
-  .dd-overlay-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 32px; }
-  .dd-overlay-cell { min-width: 0; }
+  .dd-overlay-body { max-width: 1100px; margin: 0 auto; flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+  .dd-overlay-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 32px; flex: 1; overflow: hidden; }
+  .dd-overlay-cell { min-width: 0; overflow: hidden; }
   .dd-stats { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; }
   .dd-stat-card {
     flex: 1; background: var(--gray-50); border: 1px solid var(--gray-100);
@@ -1303,8 +1306,8 @@
   }
   .dd-tod-pct { font-size: 0.85rem; font-weight: 700; color: var(--black); margin-top: 0.3rem; }
 
-  .dd-hour-grid { display: flex; flex-direction: column; gap: 2px; margin-bottom: 0.5rem; }
-  .dd-hour-row { display: flex; align-items: center; gap: 0.4rem; min-height: 24px; }
+  .dd-hour-grid { display: flex; flex-direction: column; gap: 1px; overflow: hidden; }
+  .dd-hour-row { display: flex; align-items: center; gap: 0.4rem; min-height: 20px; }
   .dd-hour-label { width: 28px; font-size: 0.6rem; color: var(--gray-400); text-align: right; flex-shrink: 0; align-self: flex-start; line-height: 14px; }
   .dd-hour-bars { flex: 1; display: flex; flex-direction: column; gap: 1px; }
   .dd-hour-bar-line { display: flex; align-items: center; gap: 0.3rem; height: 12px; }
@@ -1316,8 +1319,8 @@
 
   .dd-activity-list { display: flex; flex-direction: column; gap: 4px; overflow: hidden; }
   .dd-activity-row { display: flex; align-items: center; gap: 0.5rem; }
-  .dd-activity-name { font-size: 0.72rem; color: var(--black); max-width: 200px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: default; }
-  .dd-activity-bar-wrap { flex: 1; height: 8px; background: var(--gray-100); border-radius: 4px; overflow: hidden; }
+  .dd-activity-name { font-size: 0.72rem; color: var(--black); width: 30%; max-width: 160px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: default; }
+  .dd-activity-bar-wrap { flex: 1; min-width: 40px; height: 8px; background: var(--gray-100); border-radius: 4px; overflow: hidden; }
   .dd-activity-bar { height: 100%; background: var(--orange); border-radius: 4px; transition: width 0.3s; }
   .dd-activity-dur { font-size: 0.68rem; color: var(--gray-500); min-width: 36px; text-align: right; font-variant-numeric: tabular-nums; }
 
@@ -1343,7 +1346,7 @@
   }
 
   .dd-heatmap-card {
-    background: var(--gray-100); border-radius: 12px; padding: 0.75rem; margin-bottom: 0.5rem; overflow-x: auto;
+    background: var(--gray-100); border-radius: 12px; padding: 0.75rem; margin-bottom: 0.5rem; overflow: auto;
   }
   .dd-heatmap-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.5rem; }
   .dd-heatmap-title { color: var(--black); font-size: 0.8rem; font-weight: 600; }
@@ -1353,7 +1356,7 @@
   .dd-heatmap-days { display: flex; flex-direction: column; gap: 2px; padding-right: 4px; justify-content: flex-start; flex-shrink: 0; }
   .dd-heatmap-days span { font-size: 0.55rem; color: var(--gray-400); height: 11px; line-height: 11px; text-align: right; width: 22px; }
   .dd-heatmap-grid { display: flex; gap: 2px; flex-shrink: 0; }
-  .dd-heatmap-col { display: flex; flex-direction: column; gap: 2px; }
+  .dd-heatmap-col { display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
   .dd-heatmap-cell {
     width: 11px; min-width: 11px; height: 11px; border-radius: 2px; background: var(--gray-200);
   }
@@ -3254,7 +3257,7 @@
     var d=new Date();
     var date=d.toLocaleDateString('en-US',{month:'numeric',day:'numeric',year:'numeric'});
     var time=d.toLocaleTimeString('en-US',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
-    navDate.innerHTML=date+'&ensp;'+time;
+    navDate.innerHTML='<span class="clock-half clock-date">'+date+'</span><span class="clock-half clock-time">'+time+'</span>';
   }
   tickNav();setInterval(tickNav,1000);
 
@@ -5601,7 +5604,7 @@
     html += '<div class="dd-overlay-cell">' + r1Right + '</div>';
     html += '<div class="dd-overlay-cell" style="overflow:hidden">' + r2Left + '</div>';
     html += '<div class="dd-overlay-cell">' + r2Right + '</div>';
-    html += '<div class="dd-overlay-cell" style="grid-column:1/-1">' + r3Right + '</div>';
+    html += '<div class="dd-overlay-cell" style="grid-column:1/-1;overflow:visible">' + r3Right + '</div>';
     html += '</div></div>';
 
     deepDiveContent.innerHTML = html;
