@@ -1631,13 +1631,6 @@
   .landing-logo span { color: var(--orange); }
   .landing-nav-left { display: flex; gap: 24px; align-items: center; }
   .landing-nav-right { display: flex; gap: 12px; align-items: center; }
-  .landing-nav-right .venture-badge {
-    font-size: 14px;
-    font-weight: 400;
-    text-transform: none;
-    letter-spacing: normal;
-    color: var(--gray-500);
-  }
   .landing-btn-ghost {
     background: none;
     border: 1px solid var(--gray-200);
@@ -1907,6 +1900,31 @@
     margin-top: 2rem;
   }
 
+  .landing-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 1.25rem;
+    border-top: 1px solid var(--gray-200);
+    background: #FAFAF8;
+    font-size: 0.72rem;
+    margin-top: 2rem;
+  }
+  .landing-footer-center {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+  .landing-footer-center .venture-badge {
+    font-size: 0.72rem;
+    text-transform: none;
+    letter-spacing: normal;
+  }
+  .landing-footer-copy {
+    color: var(--gray-500);
+    font-size: 0.72rem;
+  }
+
   .footer-left { position: relative; }
 
   .lang-picker-btn {
@@ -2018,7 +2036,6 @@
     </div>
     <div class="landing-clock" id="landingClock"></div>
     <div class="landing-nav-right">
-      <a class="venture-badge" href="https://gemka.co" target="_blank" rel="noopener">A Gemka Venture</a>
       <button class="landing-btn-ghost" id="landingSignIn">Sign in</button>
       <button class="landing-btn-primary" id="landingGetStarted">Get started</button>
     </div>
@@ -2068,6 +2085,25 @@
       </div>
     </div>
   </section>
+
+  <footer class="landing-footer">
+    <div class="footer-left">
+      <button class="lang-picker-btn" id="landingLangPickerBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+        </svg>
+        <span id="landingLangLabel">English</span>
+      </button>
+      <div class="lang-dropdown" id="landingLangDropdown"></div>
+    </div>
+    <div class="landing-footer-center">
+      <a class="venture-badge" href="https://gemka.co" target="_blank" rel="noopener">A Gemka Venture</a>
+      <span class="landing-footer-copy">&copy; 2026 Gemka</span>
+    </div>
+    <div class="footer-right">
+      <a href="/privacy.html" class="footer-link">Privacy Policy</a>
+    </div>
+  </footer>
 
   <div class="why-overlay" id="whyOverlay">
     <div class="why-overlay-content">
@@ -2417,8 +2453,10 @@
     currentLang = langCode;
     localStorage.setItem('et_language', langCode);
 
-    // Update lang label in footer
+    // Update lang labels in footers
     document.getElementById('langLabel').textContent = TRANSLATIONS[langCode].label;
+    var landingLangLabel = document.getElementById('landingLangLabel');
+    if (landingLangLabel) landingLangLabel.textContent = TRANSLATIONS[langCode].label;
 
     // Update static UI elements
     sessionInput.placeholder = t('whatWorking');
@@ -2458,8 +2496,8 @@
     const resetSpan = document.querySelector('.btn-secondary span');
     if (resetSpan) resetSpan.textContent = t('finishSession');
 
-    // Mark active language in dropdown
-    document.querySelectorAll('#langDropdown button').forEach(btn => {
+    // Mark active language in dropdowns
+    document.querySelectorAll('#langDropdown button, #landingLangDropdown button').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.lang === langCode);
     });
 
@@ -2493,13 +2531,35 @@
 
     document.addEventListener('click', () => {
       dropdown.classList.remove('open');
+      var ld = document.getElementById('landingLangDropdown');
+      if (ld) ld.classList.remove('open');
     });
+
+    // Wire up landing footer lang picker
+    var landingDropdown = document.getElementById('landingLangDropdown');
+    var landingBtn = document.getElementById('landingLangPickerBtn');
+    if (landingDropdown && landingBtn) {
+      landingDropdown.innerHTML = dropdown.innerHTML;
+      landingDropdown.querySelectorAll('button').forEach(b => {
+        b.addEventListener('click', (e) => {
+          e.stopPropagation();
+          setLanguage(b.dataset.lang);
+          landingDropdown.classList.remove('open');
+        });
+      });
+      landingBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        landingDropdown.classList.toggle('open');
+      });
+    }
 
     // Restore saved language
     const saved = localStorage.getItem('et_language');
     if (saved && TRANSLATIONS[saved]) {
       currentLang = saved;
       document.getElementById('langLabel').textContent = TRANSLATIONS[saved].label;
+      var ll = document.getElementById('landingLangLabel');
+      if (ll) ll.textContent = TRANSLATIONS[saved].label;
     }
   })();
 
