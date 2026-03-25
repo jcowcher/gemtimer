@@ -79,6 +79,8 @@
     justify-content: space-between;
     padding: 16px 40px;
     max-width: 1100px;
+    width: 100%;
+    box-sizing: border-box;
     margin: 0 auto;
     border-bottom: none;
   }
@@ -1279,6 +1281,7 @@
 
   .dd-overlay-body { max-width: 1100px; margin: 0 auto; flex: 1; overflow: hidden; display: flex; flex-direction: column; }
   .dd-overlay-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 32px; flex: 1; overflow: hidden; }
+  .dd-trend-bottom { flex-shrink: 0; padding-top: 8px; }
   .dd-overlay-cell { min-width: 0; overflow: hidden; }
   .dd-stats { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; }
   .dd-stat-card {
@@ -1310,8 +1313,8 @@
   .dd-hour-row { display: flex; align-items: center; gap: 0.4rem; min-height: 20px; }
   .dd-hour-label { width: 28px; font-size: 0.6rem; color: var(--gray-400); text-align: right; flex-shrink: 0; align-self: flex-start; line-height: 14px; }
   .dd-hour-bars { flex: 1; display: flex; flex-direction: column; gap: 1px; }
-  .dd-hour-bar-line { display: flex; align-items: center; gap: 0.3rem; height: 12px; }
-  .dd-hour-bar-bg { flex: 1; height: 8px; background: var(--gray-50); border-radius: 3px; overflow: hidden; }
+  .dd-hour-bar-line { display: flex; align-items: center; gap: 0.3rem; height: 10px; }
+  .dd-hour-bar-bg { flex: 1; height: 6px; background: var(--gray-50); border-radius: 3px; overflow: hidden; }
   .dd-hour-bar-bg .dd-hour-bar { height: 100%; border-radius: 3px; transition: width 0.3s; }
   .dd-hour-bar.focus { background: #ff6600; }
   .dd-hour-bar.work { background: #fff; border: 1.5px solid #ff6600; border-radius: 3px; box-sizing: border-box; }
@@ -1665,17 +1668,7 @@
     overflow: hidden;
   }
   .landing-nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 40px;
-    max-width: 1100px;
-    width: 100%;
-    box-sizing: border-box;
-    margin: 0 auto;
     margin-top: 10px;
-    position: relative;
-    border-bottom: none;
   }
   .landing-nav::after {
     content: '';
@@ -5604,8 +5597,9 @@
     html += '<div class="dd-overlay-cell">' + r1Right + '</div>';
     html += '<div class="dd-overlay-cell" style="overflow:hidden">' + r2Left + '</div>';
     html += '<div class="dd-overlay-cell">' + r2Right + '</div>';
-    html += '<div class="dd-overlay-cell" style="grid-column:1/-1;overflow:visible">' + r3Right + '</div>';
-    html += '</div></div>';
+    html += '</div>';
+    if (r3Right) html += '<div class="dd-trend-bottom">' + r3Right + '</div>';
+    html += '</div>';
 
     deepDiveContent.innerHTML = html;
 
