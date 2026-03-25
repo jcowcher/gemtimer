@@ -1628,6 +1628,7 @@
     text-decoration: none;
   }
   .landing-logo span { color: var(--orange); }
+  .landing-nav-left { display: flex; gap: 12px; align-items: center; }
   .landing-nav-right { display: flex; gap: 12px; align-items: center; }
   .landing-btn-ghost {
     background: none;
@@ -1792,13 +1793,11 @@
 
   /* Landing modes section */
   .landing-clock {
-    text-align: center;
     font-size: 0.8rem;
     font-weight: 400;
     color: var(--gray-400);
     letter-spacing: 0.05em;
     font-variant-numeric: tabular-nums;
-    padding: 0.25rem 0 0;
   }
   .landing-why-link {
     font-size: 14px;
@@ -2001,15 +2000,17 @@
 <!-- Landing page (shown when logged out) -->
 <div class="landing" id="landingPage">
   <nav class="landing-nav">
-    <div class="landing-logo">Gem<span>Timer</span></div>
-    <a class="landing-why-link" id="landingWhyLink">The Why</a>
+    <div class="landing-nav-left">
+      <div class="landing-logo">Gem<span>Timer</span></div>
+      <a class="landing-why-link" id="landingWhyLink">The Why</a>
+    </div>
+    <div class="landing-clock" id="landingClock"></div>
     <div class="landing-nav-right">
       <a class="venture-badge" href="https://gemka.co" target="_blank" rel="noopener">A GemKa venture</a>
       <button class="landing-btn-ghost" id="landingSignIn">Sign in</button>
       <button class="landing-btn-primary" id="landingGetStarted">Get started</button>
     </div>
   </nav>
-  <div class="landing-clock" id="landingClock"></div>
 
   <div class="landing-inner">
     <section class="landing-hero">
