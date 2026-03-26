@@ -5213,6 +5213,7 @@
     const deepSec = todaySessions.filter(s => (s.type || 'deep') === 'deep').reduce((sum, s) => sum + getSessionDurationForDay(s, todayKey), 0);
     const sustainingSec = todaySessions.filter(s => (s.type || 'deep') === 'sustaining').reduce((sum, s) => sum + getSessionDurationForDay(s, todayKey), 0);
     var wtBreakdown = document.getElementById('workTypeBreakdown');
+    if (!wtBreakdown) { document.title = 'WT MISSING'; }
     if (deepSec > 0 || sustainingSec > 0) {
       var wtHtml = '<div class="work-type-breakdown-title">By type of work</div>';
       if (deepSec > 0) wtHtml += '<div class="work-type-breakdown-row"><span class="work-type-breakdown-dot deep"></span><span class="work-type-breakdown-label">Deep Work</span><span class="work-type-breakdown-time">' + fmtTotal(deepSec) + '</span></div>';
