@@ -2739,8 +2739,12 @@ window.onerror = function(msg, url, line) {
     if (!window.supabase || supabaseClient) return;
     supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       accessToken: async () => {
-        const t = await window.Clerk?.session?.getToken();
-        return t ?? null;
+        try {
+          const p = window.Clerk?.session?.getToken();
+          if (!p) return null;
+          const t = await Promise.race([p, new Promise(r => setTimeout(() => r(null), 5000))]);
+          return t ?? null;
+        } catch (e) { return null; }
       }
     });
   }
