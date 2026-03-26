@@ -3044,8 +3044,12 @@
     }, 1500);
   }
 
+  let _activeTimerLoaded = false;
+
   async function loadActiveTimer() {
     if (!currentUser || !supabaseClient) return;
+    if (_activeTimerLoaded || running || elapsed > 0) return;
+    _activeTimerLoaded = true;
     try {
       var res = await supabaseClient.from('active_timer').select('*').eq('user_id', currentUser.id).maybeSingle();
       if (res.error) throw res.error;
@@ -3054,11 +3058,18 @@
 
       var currentElapsed;
       if (data.is_running && data.started_at) {
-        currentElapsed = data.accumulated + Math.floor((Date.now() - new Date(data.started_at).getTime()) / 1000);
+        var startMs = new Date(data.started_at).getTime();
+        if (isNaN(startMs)) { currentElapsed = data.accumulated || 0; }
+        else { currentElapsed = (data.accumulated || 0) + Math.floor((Date.now() - startMs) / 1000); }
       } else {
-        currentElapsed = data.accumulated;
+        currentElapsed = data.accumulated || 0;
       }
-      if (currentElapsed < 0) currentElapsed = 0;
+      if (isNaN(currentElapsed) || currentElapsed < 0) currentElapsed = 0;
+      if (currentElapsed > 86400) {
+        // Stale timer — delete it instead of restoring
+        deleteActiveTimer();
+        return;
+      }
 
       if (data.pomodoro_mode) {
         resumePomodoroFromSync(data, currentElapsed);
