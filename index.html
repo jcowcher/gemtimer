@@ -2913,74 +2913,7 @@
   });
 
   async function loadAndMergeFromSupabase() {
-    if (!currentUser || !supabaseClient) return;
-    try {
-      const { data, error } = await supabaseClient
-        .from('timer_history')
-        .select('*')
-        .eq('user_id', currentUser.id)
-        .order('date', { ascending: true });
-      if (error) throw error;
-
-      const localSessions = JSON.parse(localStorage.getItem('et_sessions') || '[]');
-      if (localSessions.length > 0 && data.length === 0) {
-        await migrateLocalToSupabase(localSessions);
-        return; // migrateLocalToSupabase will re-call this
-      }
-
-      // Merge cloud and local sessions (don't lose local-only sessions)
-      const cloudSessions = (data || []).map(row => ({
-        _sb_id: row.id,
-        duration: row.duration,
-        date: row.date,
-        name: row.name || 'Deep Work',
-        manual: row.manual || false,
-        type: row.type || 'deep'
-      }));
-
-      const cloudDates = new Set(cloudSessions.map(s => s.date));
-
-      // Find local sessions not in cloud (failed syncs)
-      const localOnly = localSessions.filter(s => !s._sb_id && !cloudDates.has(s.date));
-
-      // Re-sync local-only sessions to cloud
-      for (const s of localOnly) {
-        const saved = await saveSessionToSupabase(s);
-        if (saved) {
-          s._sb_id = saved.id;
-        }
-      }
-
-      sessions = [...cloudSessions, ...localOnly];
-      // Sort by date so history renders correctly
-      sessions.sort((a, b) => new Date(a.date) - new Date(b.date));
-      // Dedup: keep first occurrence, delete cloud duplicates
-      const seenKeys = new Set();
-      const dupIds = [];
-      sessions = sessions.filter(s => {
-        const key = s.date + '|' + s.duration + '|' + (s.name || '');
-        if (seenKeys.has(key)) {
-          if (s._sb_id) dupIds.push(s._sb_id);
-          return false;
-        }
-        seenKeys.add(key);
-        return true;
-      });
-      // Remove duplicates from Supabase
-      if (dupIds.length > 0) {
-        supabaseClient.from('timer_history').delete().in('id', dupIds).then(() => {});
-      }
-      localStorage.setItem('et_sessions', JSON.stringify(sessions));
-
-      renderSessions();
-      renderHistory();
-    } catch (e) {
-      console.error('Failed to load from Supabase:', e);
-      // Fallback: render local sessions so history isn't blank
-      sessions = JSON.parse(localStorage.getItem('et_sessions') || '[]');
-      renderSessions();
-      renderHistory();
-    }
+    // TEMPORARY: empty to isolate freeze
   }
 
   async function migrateLocalToSupabase(localSessions) {
