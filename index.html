@@ -5717,7 +5717,7 @@
     document.body.classList.add('dd-open');
     var av=document.getElementById('authAvatar');
     var ddAv=document.getElementById('ddNavAvatar');
-    if(av&&ddAv){var tn=av.childNodes[0];ddAv.textContent=tn?tn.textContent.trim():'';}
+    if(av&&ddAv){var tn=av.childNodes[0];var initials=tn?tn.textContent.trim():'';if(ddAv.firstChild&&ddAv.firstChild.nodeType===3)ddAv.firstChild.textContent=initials;else ddAv.insertBefore(document.createTextNode(initials),ddAv.firstChild);}
     renderDeepDive();
   });
 
