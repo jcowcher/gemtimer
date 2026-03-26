@@ -256,14 +256,15 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding-right: 1.5rem;
+    order: 2;
+    padding: 0 1.5rem;
   }
   .sessions-column {
     flex: 0 0 25%;
     min-width: 0;
-    border-left: 0.5px solid var(--gray-200);
+    order: 1;
     border-right: 0.5px solid var(--gray-200);
-    padding: 0 1.25rem;
+    padding: 0 1.25rem 0 0;
     max-height: calc(100vh - 120px);
     overflow-y: auto;
     overscroll-behavior: contain;
@@ -272,7 +273,9 @@
   .stats-column {
     flex: 0 0 25%;
     min-width: 0;
-    padding-left: 1.25rem;
+    order: 3;
+    border-left: 0.5px solid var(--gray-200);
+    padding: 0 0 0 1.25rem;
     box-sizing: border-box;
   }
 
@@ -1664,14 +1667,15 @@
       padding: 2.5rem 1.25rem 3rem;
     }
 
-    .timer-section { padding-right: 0; flex: none; width: auto; align-items: center; }
+    .timer-section { padding: 0; flex: none; width: auto; align-items: center; order: 1; }
     .sessions-column {
-      width: 100%; max-width: 360px;
+      width: 100%; max-width: 360px; order: 2;
       border-left: none; border-right: none;
       padding: 0; max-height: none; overflow-y: visible;
     }
     .stats-column {
-      width: 100%; max-width: 360px;
+      width: 100%; max-width: 360px; order: 3;
+      border-left: none;
       padding-left: 0;
     }
     .session-section {
