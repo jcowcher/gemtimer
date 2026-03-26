@@ -2849,14 +2849,12 @@
             overlay.style.display = 'none';
             resetSignInForm();
           }
-          initSupabase();
+          // Test: create client without accessToken callback
+          if (!supabaseClient && window.supabase) {
+            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+          }
           setTimeout(function() {
-            document.title = 'CALLING getToken...';
-            window.Clerk.session.getToken().then(function(t) {
-              document.title = 'TOKEN: ' + (t ? 'got it' : 'null');
-            }).catch(function(e) {
-              document.title = 'TOKEN ERR: ' + e.message;
-            });
+            loadAndMergeFromSupabase().catch(function(e) { console.error('merge error:', e); });
           }, 3000);
         } else {
           sessions = JSON.parse(localStorage.getItem('et_sessions') || '[]');
