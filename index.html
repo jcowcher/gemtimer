@@ -2913,7 +2913,17 @@
   });
 
   async function loadAndMergeFromSupabase() {
-    // TEMPORARY: empty to isolate freeze
+    if (!currentUser || !supabaseClient) return;
+    try {
+      const { data, error } = await supabaseClient
+        .from('timer_history')
+        .select('id')
+        .eq('user_id', currentUser.id)
+        .limit(1);
+      document.title = 'QUERY: ' + (error ? error.message : (data ? data.length + ' rows' : 'null'));
+    } catch (e) {
+      document.title = 'CATCH: ' + e.message;
+    }
   }
 
   async function migrateLocalToSupabase(localSessions) {
