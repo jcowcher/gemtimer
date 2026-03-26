@@ -2389,7 +2389,7 @@
       <div class="dd-nav">
         <a class="nav-logo-btn logo" href="/">Gem<span>Timer</span></a>
         <span class="nav-date" id="ddNavDate"></span>
-        <div class="auth-avatar" id="ddNavAvatar"></div>
+        <div class="auth-avatar" id="ddNavAvatar"><div class="auth-dropdown" id="ddAuthDropdown"><button id="ddSignOutBtn">Sign out</button></div></div>
       </div>
       <div class="dd-header">
         <span class="dd-title">Deep dive</span>
@@ -5721,7 +5721,15 @@
     renderDeepDive();
   });
 
-  document.getElementById('ddNavAvatar').addEventListener('click', handleSignOut);
+  document.getElementById('ddNavAvatar').addEventListener('click', (e) => {
+    e.stopPropagation();
+    document.getElementById('ddAuthDropdown').classList.toggle('open');
+  });
+  document.getElementById('ddSignOutBtn').addEventListener('click', handleSignOut);
+  deepDivePanel.addEventListener('click', () => {
+    var dd = document.getElementById('ddAuthDropdown');
+    if (dd) dd.classList.remove('open');
+  });
 
   ddClose.addEventListener('click', () => {
     deepDivePanel.classList.remove('open');
