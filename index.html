@@ -2850,6 +2850,9 @@
             resetSignInForm();
           }
           initSupabase();
+          setTimeout(function() {
+            loadAndMergeFromSupabase().catch(function(e) { console.error('merge error:', e); });
+          }, 3000);
         } else {
           sessions = JSON.parse(localStorage.getItem('et_sessions') || '[]');
           renderSessions();
