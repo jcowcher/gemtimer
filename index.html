@@ -2824,13 +2824,17 @@
 
   // ── Auth & Supabase ──────────────────────────────────
   // Direct fetch helpers — bypass supabase-js client to avoid main-thread freeze
-  async function sbHeaders() {
+  var _sbToken = null;
+  async function sbRefreshToken() {
+    try { _sbToken = await window.Clerk?.session?.getToken(); } catch(e) { _sbToken = null; }
+  }
+  function sbHeaders() {
     var h = { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
-    try { var t = await window.Clerk?.session?.getToken(); if (t) h['Authorization'] = 'Bearer ' + t; } catch(e) {}
+    if (_sbToken) h['Authorization'] = 'Bearer ' + _sbToken;
     return h;
   }
   async function sbFetch(path, opts) {
-    var h = await sbHeaders();
+    var h = sbHeaders();
     var res = await fetch(SUPABASE_URL + '/rest/v1/' + path, Object.assign({ headers: h }, opts || {}));
     var body = null;
     var text = await res.text();
@@ -2856,7 +2860,9 @@
             resetSignInForm();
           }
           initSupabase();
-          setTimeout(function() { loadAndMergeFromSupabase().catch(function(e) { console.error('merge:', e); }); }, 100);
+          sbRefreshToken().then(function() {
+            loadAndMergeFromSupabase().catch(function(e) { console.error('merge:', e); });
+          });
         } else {
           sessions = JSON.parse(localStorage.getItem('et_sessions') || '[]');
           renderSessions();
