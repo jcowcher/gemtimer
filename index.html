@@ -1540,9 +1540,12 @@
     display: none; position: absolute; top: calc(100% + 8px); left: 50%;
     transform: translateX(-50%); background: #fff; color: var(--gray-500);
     font-size: 0.65rem; font-weight: 400; padding: 0.5rem 0.7rem;
-    border-radius: 8px; box-shadow: 0 4px 12px rgba(255,102,0,0.08);
+    border-radius: 8px;
     width: 220px; white-space: normal; line-height: 1.45; pointer-events: none; z-index: 20;
-    border: 1px solid rgba(255,102,0,0.15);
+    border: 1px solid rgba(255,102,0,0.15); box-shadow: 0 4px 12px rgba(255,102,0,0.08);
+  }
+  .work-type-btn[data-type="sustaining"] .wt-tooltip {
+    border-color: rgba(0,0,0,0.12); box-shadow: 0 4px 12px rgba(0,0,0,0.06);
   }
   .work-type-btn:hover .wt-tooltip { display: block; }
 
