@@ -3049,9 +3049,14 @@
     if (!currentUser || !supabaseClient) return;
     try {
       const row = Object.assign({ user_id: currentUser.id, updated_at: new Date().toISOString() }, fields);
-      await supabaseClient.from('active_timer').upsert(row, { onConflict: 'user_id' });
+      const { error } = await supabaseClient.from('active_timer').upsert(row, { onConflict: 'user_id' });
+      if (error) {
+        console.error('syncActiveTimer error:', error);
+        document.title = 'SYNC ERR: ' + error.message;
+      }
     } catch (e) {
       console.error('Failed to sync active timer:', e);
+      document.title = 'SYNC CATCH: ' + e.message;
     }
   }
 
