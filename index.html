@@ -2343,7 +2343,7 @@
         <ul class="theme-dropdown-list" id="themeList"></ul>
       </div>
     </div>
-    <div class="work-type-breakdown" id="workTypeBreakdown" style="display:none"></div>
+    <div class="work-type-breakdown" id="workTypeBreakdown"></div>
   </div>
 
   <div class="sessions-column">
@@ -5213,16 +5213,15 @@
     const deepSec = todaySessions.filter(s => (s.type || 'deep') === 'deep').reduce((sum, s) => sum + getSessionDurationForDay(s, todayKey), 0);
     const sustainingSec = todaySessions.filter(s => (s.type || 'deep') === 'sustaining').reduce((sum, s) => sum + getSessionDurationForDay(s, todayKey), 0);
     var wtBreakdown = document.getElementById('workTypeBreakdown');
-    if (!wtBreakdown) { document.title = 'WT MISSING'; }
-    if (deepSec > 0 || sustainingSec > 0) {
-      var wtHtml = '<div class="work-type-breakdown-title">By type of work</div>';
-      if (deepSec > 0) wtHtml += '<div class="work-type-breakdown-row"><span class="work-type-breakdown-dot deep"></span><span class="work-type-breakdown-label">Deep Work</span><span class="work-type-breakdown-time">' + fmtTotal(deepSec) + '</span></div>';
-      if (sustainingSec > 0) wtHtml += '<div class="work-type-breakdown-row"><span class="work-type-breakdown-dot sustaining"></span><span class="work-type-breakdown-label">Sustaining</span><span class="work-type-breakdown-time">' + fmtTotal(sustainingSec) + '</span></div>';
-      wtBreakdown.innerHTML = wtHtml;
-      wtBreakdown.style.display = 'block';
-    } else {
-      wtBreakdown.style.display = 'none';
-      wtBreakdown.innerHTML = '';
+    if (wtBreakdown) {
+      if (todaySessions.length > 0) {
+        wtBreakdown.innerHTML =
+          '<div class="work-type-breakdown-title">By type of work</div>' +
+          '<div class="work-type-breakdown-row"><span class="work-type-breakdown-dot deep"></span><span class="work-type-breakdown-label">Deep Work</span><span class="work-type-breakdown-time">' + fmtTotal(deepSec) + '</span></div>' +
+          '<div class="work-type-breakdown-row"><span class="work-type-breakdown-dot sustaining"></span><span class="work-type-breakdown-label">Sustaining</span><span class="work-type-breakdown-time">' + fmtTotal(sustainingSec) + '</span></div>';
+      } else {
+        wtBreakdown.innerHTML = '';
+      }
     }
 
     // Wire delete buttons
