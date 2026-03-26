@@ -2820,6 +2820,7 @@
       spBtn.classList.toggle('sustaining', type === 'sustaining');
     }
     syncPomoPillColor();
+    if (running || elapsed > 0) syncActiveTimer({ work_type: type });
   });
 
   // ── Auth & Supabase ──────────────────────────────────
@@ -2848,6 +2849,7 @@
           }
           initSupabase();
           await loadAndMergeFromSupabase();
+          await loadActiveTimer();
         } else {
           sessions = JSON.parse(localStorage.getItem('et_sessions') || '[]');
           renderSessions();
@@ -3038,6 +3040,189 @@
     } catch (e) {
       console.error('Failed to delete from Supabase:', e);
     }
+  }
+
+  // ── Active Timer Sync (cross-device) ───────────────────
+  let _activityNameDebounceTimer = null;
+
+  async function syncActiveTimer(fields) {
+    if (!currentUser || !supabaseClient) return;
+    try {
+      const row = Object.assign({ user_id: currentUser.id, updated_at: new Date().toISOString() }, fields);
+      await supabaseClient.from('active_timer').upsert(row, { onConflict: 'user_id' });
+    } catch (e) {
+      console.error('Failed to sync active timer:', e);
+    }
+  }
+
+  async function deleteActiveTimer() {
+    if (!currentUser || !supabaseClient) return;
+    try {
+      await supabaseClient.from('active_timer').delete().eq('user_id', currentUser.id);
+    } catch (e) {
+      console.error('Failed to delete active timer:', e);
+    }
+  }
+
+  function syncActivityName(name) {
+    if (!running && elapsed === 0) return;
+    clearTimeout(_activityNameDebounceTimer);
+    _activityNameDebounceTimer = setTimeout(function() {
+      syncActiveTimer({ activity_name: name });
+    }, 1500);
+  }
+
+  async function loadActiveTimer() {
+    if (!currentUser || !supabaseClient) return;
+    try {
+      var res = await supabaseClient.from('active_timer').select('*').eq('user_id', currentUser.id).maybeSingle();
+      if (res.error) throw res.error;
+      var data = res.data;
+      if (!data) return;
+
+      var currentElapsed;
+      if (data.is_running && data.started_at) {
+        currentElapsed = data.accumulated + Math.floor((Date.now() - new Date(data.started_at).getTime()) / 1000);
+      } else {
+        currentElapsed = data.accumulated;
+      }
+      if (currentElapsed < 0) currentElapsed = 0;
+
+      if (data.pomodoro_mode) {
+        resumePomodoroFromSync(data, currentElapsed);
+      } else {
+        resumeNormalFromSync(data, currentElapsed);
+      }
+    } catch (e) {
+      console.error('Failed to load active timer:', e);
+    }
+  }
+
+  function resumeNormalFromSync(data, currentElapsed) {
+    elapsed = currentElapsed;
+    elapsedBeforePause = currentElapsed;
+    currentWorkType = data.work_type || 'deep';
+    sessionInput.value = data.activity_name || '';
+    completedLaps = Math.floor(elapsed / ONE_HOUR);
+    chime60Played = elapsed >= 3600;
+
+    // Update work type toggle UI
+    var mainToggle = document.getElementById('mainWorkTypeToggle');
+    mainToggle.querySelectorAll('.work-type-btn').forEach(function(b) {
+      b.className = 'work-type-btn' + (b.dataset.type === currentWorkType
+        ? (currentWorkType === 'deep' ? ' active-deep' : ' active-sustaining') : '');
+    });
+
+    // Get button references (these may have been cloned by the time this runs)
+    var spBtn = document.querySelector('.controls .btn-primary');
+    var bText = spBtn ? spBtn.querySelector('span') : null;
+    var bIcon = spBtn ? spBtn.querySelector('svg') : null;
+
+    if (data.is_running) {
+      running = true;
+      startTime = Date.now();
+      tick();
+      interval = setInterval(tick, 1000);
+      if (bText) bText.textContent = t('pause');
+      if (bIcon) bIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+      if (spBtn) spBtn.className = 'btn btn-primary' + (currentWorkType === 'sustaining' ? ' sustaining' : '');
+      statusLabel.textContent = activeRunningLabels[Math.floor(Math.random() * activeRunningLabels.length)];
+      statusLabel.className = 'time-label running-label';
+      timerBody.classList.add('running');
+    } else {
+      running = false;
+      startTime = null;
+      if (bText) bText.textContent = t('resume');
+      if (bIcon) bIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+      if (spBtn) spBtn.className = 'btn btn-primary' + (currentWorkType === 'sustaining' ? ' sustaining' : '');
+      statusLabel.textContent = getRandomIdleQuote();
+      statusLabel.className = 'time-label paused-label';
+    }
+
+    timerWrap.classList.add('active');
+    display.classList.remove('idle');
+    display.classList.add('visible');
+    updateDisplay();
+  }
+
+  function resumePomodoroFromSync(data, currentElapsed) {
+    var target = (data.pomodoro_phase === 'break') ? POMO_BREAK : POMO_WORK;
+
+    // Phase expired while away
+    if (currentElapsed >= target) {
+      if (data.pomodoro_phase !== 'break') {
+        // Work phase completed — save session and start break
+        pomodoroMode = true;
+        pomodoroPhase = 'work';
+        currentWorkType = data.work_type || 'deep';
+        sessionInput.value = data.activity_name || '';
+        elapsed = target;
+        elapsedBeforePause = target;
+        running = true;
+        startTime = Date.now();
+        interval = setInterval(tick, 1000);
+        // finishPomodoroWork will save session and transition to break
+        finishPomodoroWork();
+        syncActiveTimer({
+          is_running: true, started_at: new Date().toISOString(),
+          accumulated: 0, pomodoro_phase: 'break', pomodoro_mode: true,
+          activity_name: data.activity_name || '', work_type: data.work_type || 'deep'
+        });
+      } else {
+        // Break completed — stop timer
+        pomodoroMode = true;
+        pomodoroPhase = 'break';
+        finishPomodoroBreak();
+        deleteActiveTimer();
+      }
+      // Activate pomodoro UI
+      pomodoroBtn.childNodes[0].textContent = t('exitPomodoro');
+      pomodoroBtn.classList.add('active');
+      syncPomoPillColor();
+      return;
+    }
+
+    // Phase still in progress — restore
+    pomodoroMode = true;
+    pomodoroPhase = data.pomodoro_phase || 'work';
+    currentWorkType = data.work_type || 'deep';
+    sessionInput.value = data.activity_name || '';
+    elapsed = currentElapsed;
+    elapsedBeforePause = currentElapsed;
+    completedLaps = 0;
+
+    pomodoroBtn.childNodes[0].textContent = t('exitPomodoro');
+    pomodoroBtn.classList.add('active');
+    syncPomoPillColor();
+
+    var spBtn = document.querySelector('.controls .btn-primary');
+    var bText = spBtn ? spBtn.querySelector('span') : null;
+    var bIcon = spBtn ? spBtn.querySelector('svg') : null;
+
+    if (data.is_running) {
+      running = true;
+      startTime = Date.now();
+      tick();
+      interval = setInterval(tick, 1000);
+      if (bText) bText.textContent = t('pause');
+      if (bIcon) bIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+      statusLabel.textContent = pomodoroPhase === 'break' ? t('breakTime') : t('pomodoro');
+      statusLabel.className = 'time-label running-label';
+      timerBody.classList.add('running');
+    } else {
+      running = false;
+      startTime = null;
+      if (bText) bText.textContent = t('resume');
+      if (bIcon) bIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+      statusLabel.textContent = pomodoroPhase === 'break' ? t('breakTime') : t('pomodoro');
+      statusLabel.className = 'time-label paused-label';
+    }
+
+    if (spBtn) spBtn.className = 'btn btn-primary' + (currentWorkType === 'sustaining' ? ' sustaining' : '');
+    timerWrap.classList.add('active');
+    display.classList.remove('idle');
+    display.classList.add('visible');
+    updateDisplay();
   }
 
   // Custom sign-in flow
@@ -4637,6 +4822,7 @@
     display.classList.add('visible');
     statusLabel.textContent = t('pomodoro');
     statusLabel.className = 'time-label idle-label';
+    deleteActiveTimer();
   }
 
   function exitPomodoro() {
@@ -4665,6 +4851,7 @@
     statusLabel.className = 'time-label idle-label';
     timerBody.classList.remove('running');
     timerWrap.classList.remove('active');
+    deleteActiveTimer();
   }
 
   async function finishPomodoroWork() {
@@ -4698,6 +4885,10 @@
     startTime = Date.now();
     statusLabel.textContent = t('breakTime');
     statusLabel.className = 'time-label running-label';
+    syncActiveTimer({
+      is_running: true, started_at: new Date().toISOString(),
+      accumulated: 0, pomodoro_phase: 'break', pomodoro_mode: true
+    });
 
     updateDisplay();
   }
@@ -4714,6 +4905,7 @@
     startTime = null;
     elapsedBeforePause = 0;
     completedLaps = 0;
+    deleteActiveTimer();
 
     // Reset UI to ready-for-next-round state
     const currentBtn = document.querySelector('.btn-primary span');
@@ -4765,6 +4957,7 @@
       statusLabel.className = 'time-label paused-label';
       timerBody.classList.remove('running');
       timerWrap.classList.add('active');
+      syncActiveTimer({ is_running: false, accumulated: elapsed });
     } else {
       running = true;
       startTime = Date.now();
@@ -4780,6 +4973,13 @@
       timerWrap.classList.add('active');
       tick();
       interval = setInterval(tick, 1000);
+      syncActiveTimer({
+        is_running: true, started_at: new Date().toISOString(),
+        accumulated: elapsedBeforePause,
+        activity_name: sessionInput.value.trim(),
+        work_type: currentWorkType,
+        pomodoro_mode: pomodoroMode, pomodoro_phase: pomodoroPhase
+      });
     }
   });
 
@@ -4791,6 +4991,7 @@
     const savedElapsed = elapsed;
     const savedName = sessionInput.value.trim() || t('deepWork');
     const savedType = currentWorkType;
+    deleteActiveTimer();
 
     // Stop timer immediately before any async work
     clearInterval(interval);
@@ -6000,6 +6201,7 @@
   }
 
   setupSessionSuggestions(sessionInput, document.getElementById('mainSessionSuggestions'));
+  sessionInput.addEventListener('input', function() { syncActivityName(this.value.trim()); });
 
   // Add Session overlay
   (function() {
