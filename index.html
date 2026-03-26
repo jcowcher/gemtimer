@@ -301,7 +301,8 @@
     cursor: pointer; transition: background 0.1s;
     display: flex; align-items: center; justify-content: space-between;
   }
-  .session-suggestion-item:hover { background: var(--gray-50); }
+  .session-suggestion-item:hover { background: rgba(255,102,0,0.08); }
+  .session-suggestions.sustaining .session-suggestion-item:hover { background: rgba(0,0,0,0.05); }
   .suggestion-text { flex: 1; }
   .suggestion-remove {
     font-size: 0.6rem; color: var(--gray-300); padding: 0.15rem 0.3rem;
@@ -1109,8 +1110,8 @@
     justify-content: space-between;
     transition: background 0.1s;
   }
-  .theme-dropdown-item:hover { background: var(--gray-50); }
-  .theme-dropdown-item.highlight { background: var(--gray-50); }
+  .theme-dropdown-item:hover { background: rgba(0,0,0,0.05); }
+  .theme-dropdown-item.highlight { background: rgba(0,0,0,0.05); }
   .theme-dropdown-item.selected { color: var(--orange); font-weight: 500; }
   .theme-dropdown-item.selected::after { content: '✓'; font-size: 0.7rem; }
   .theme-dropdown-empty {
@@ -2082,6 +2083,7 @@
     .history-group-header:hover { background: none; }
     .theme-toggle:hover { color: var(--gray-500); border-color: var(--gray-200); }
     .theme-dropdown-item:hover { background: none; }
+    .session-suggestion-item:hover { background: none; }
     .deep-dive-btn:hover { border-color: var(--gray-300); color: var(--gray-500); }
     .feedback-fab:hover { background: var(--gray-700); transform: none; }
     .feedback-modal .feedback-cancel:hover { background: var(--gray-100); }
@@ -6016,8 +6018,10 @@
 
   function setupSessionSuggestions(input, list, getWorkType) {
     function showMatches() {
+      var wt = getWorkType ? getWorkType() : null;
+      list.classList.toggle('sustaining', wt === 'sustaining');
       const val = input.value.trim().toLowerCase();
-      const names = getVisibleNames(getWorkType ? getWorkType() : null);
+      const names = getVisibleNames(wt);
       const matches = val ? names.filter(n => n.toLowerCase().includes(val)) : names;
       if (matches.length === 0) { list.classList.remove('open'); list.innerHTML = ''; return; }
       list.innerHTML = matches.map(n =>
