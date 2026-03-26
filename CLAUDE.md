@@ -6,7 +6,7 @@ GemTimer — minimalist focus timer and productivity tracker at gemtimer.com.
 
 - **Frontend**: Single-page vanilla HTML/CSS/JS — everything lives in `index.html` (~5,675 lines, ~260KB). No framework, no build step, no package.json.
 - **Auth**: Clerk.js v5 (loaded from CDN). Custom sign-in form (not Clerk's mounted UI) for password manager compatibility.
-- **Database**: Supabase (PostgreSQL) via direct `fetch()` to REST API — cloud session sync, active timer sync, quotes table. Migrations in `supabase/migrations/`. The Supabase JS SDK was removed because it caused page freezes (likely a deadlock with Clerk's `getToken()` inside the auth listener).
+- **Database**: Supabase (PostgreSQL, JS SDK v2.98.0 pinned) — cloud session sync, active timer sync, quotes table. Migrations in `supabase/migrations/`.
 - **Storage**: localStorage-first, cloud sync for logged-in users. Key: `et_sessions`.
 - **Hosting**: Vercel (gemtimer.com). `vercel.json` redirects elementarytimer.com → gemtimer.com.
 - **Analytics**: Cloudflare Insights.
@@ -57,10 +57,10 @@ Auth and cloud sync require the Clerk/Supabase keys in `.env.local` — but thes
 - Deep Work vs. Sustaining work type toggle
 - Pomodoro mode (25/5)
 - Session history: add/edit/delete, grouped by day
-- Analytics: heatmap (GitHub-style), hourly focus map, streaks, weekly stats
-- 36 quote themes (Sherlock Holmes, Breaking Bad, Game of Thrones, etc.)
-- Notion-style theme dropdown with search filtering and keyboard navigation
-- Clerk auth with Supabase sync
+- Deep Dive analytics: 4 stat boxes (Total Focus, Daily Avg, Best Day, Peak Hour), 1y heatmap (Mon–Sun, bigger squares, renders to current week), hourly focus, activity breakdown, daily trend
+- 36 quote themes with Notion-style dropdown (search, keyboard nav, hover tooltip)
+- Activity dropdown filtered by work type, with chevron and work-type-aware hover tints
+- Clerk auth with Supabase sync (Supabase JS pinned to v2.98.0, Clerk unpinned @5)
 - Multi-language (en, es, fr, de, pt, ja)
 - Mobile responsive, touch-optimized
 
@@ -75,6 +75,8 @@ Read `NOTES.md` for full details. The most dangerous ones:
 5. **`setTimeout(() => ctx.close(), 2500)`** — Web Audio cleanup; removing causes memory leaks on mobile
 6. **Quotes fetch race guard** — checks `activeThemeKey` after async return to discard stale results
 7. **Sort comparator NaN guard** — `.sort()` comparators must always return a valid number. Invalid date comparisons produce NaN, causing infinite loops in some browsers (especially Safari/WebKit). Use `|| 0` fallback.
+8. **`tick()` 24h safety net** — if `elapsed > 86400`, timer is killed immediately. Prevents corrupted sync data from saving as a session.
+9. **`splitSessionByDay` duration cap** — caps at 86400s to prevent the while loop from iterating thousands of times on corrupted data.
 
 ## Conventions
 

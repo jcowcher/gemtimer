@@ -66,9 +66,12 @@ Centering a label in the gap between hero and mode cards on the landing page. Ke
 `fetchQuotesForTheme()` checks `activeThemeKey` after the async fetch returns. If the user switched themes while the request was in flight, the stale result is discarded.
 `0803ef2`
 
-**Supabase JS SDK removed — direct fetch to REST API**
-The Supabase JS client library caused page freezes, likely due to a deadlock with Clerk's `getToken()` inside the auth listener callback. All DB calls now use direct `fetch()` to Supabase REST endpoints via `sbFetch()` helper, with auth headers from Clerk. Trade-off: loses auto token refresh, real-time subscriptions, and retry logic. If the SDK is ever re-added, never call `getToken()` inside Clerk listener callbacks.
-`8829beb`
+**Supabase JS SDK kept (v2.98.0 pinned) — page freeze was corrupted data, not SDK**
+The page freeze was initially attributed to the Supabase JS client, but the actual cause was a corrupted session (192,916 hours) from a cross-device sync bug. The `splitSessionByDay` while loop iterated thousands of times on the bad data, freezing the page. The SDK was temporarily replaced with direct fetch but then restored once the real cause was found. Clerk is unpinned (`@5`), Supabase is pinned to `@2.98.0`.
+
+**`tick()` safety net — kill timer if elapsed > 24h**
+If `elapsed` ever exceeds 86400 seconds in `tick()`, the timer is immediately killed (`elapsed = 0, clearInterval, running = false`). This is a last-resort safety net for the cross-device sync — prevents corrupted elapsed values from being saved as sessions. The actual unit mismatch in `resumeNormalFromSync` may still need deeper investigation if it recurs.
+`2e29438`
 
 **Corrupted session row from sync bug**
 A sync bug saved a session with duration 1,774,493,487 seconds (~192,916 hours) to `timer_history`. It was manually deleted via Supabase dashboard. If abnormal durations appear again, filter `timer_history` for `duration > 86400` to find and delete them.
@@ -92,3 +95,11 @@ The date/time is centered using `scrollbar-gutter: stable` on `html` (reserves s
 **Heatmap month label collision detection**
 Month labels on the 1y heatmap skip rendering if they'd overlap the previous label (less than ~3 column widths apart). The first partial month at the start of the rolling window is excluded — `lastMonth` is initialized to the first week's month so it's treated as "already seen."
 `24b6092`
+
+**Activity suggestions filtered by work type**
+`getVisibleNames(workType)` filters session history to only show activity names previously used with the currently selected work type. The `.sustaining` class is toggled on the suggestions list to switch hover tint (orange for Deep Work, charcoal for Sustaining). Switching the toggle immediately updates suggestions.
+`e7b183a`
+
+**Work type tooltip border matches pill color**
+The `.wt-tooltip` has an orange border/shadow by default (Deep Work). A separate rule on `.work-type-btn[data-type="sustaining"] .wt-tooltip` overrides to charcoal border/shadow.
+`4340745`
