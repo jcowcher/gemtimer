@@ -2849,8 +2849,8 @@
             overlay.style.display = 'none';
             resetSignInForm();
           }
-          initSupabase();
-          loadAndMergeFromSupabase().catch(function(e) { console.error('merge error:', e); });
+          // initSupabase();
+          // loadAndMergeFromSupabase().catch(function(e) { console.error('merge error:', e); });
         } else {
           sessions = JSON.parse(localStorage.getItem('et_sessions') || '[]');
           renderSessions();
