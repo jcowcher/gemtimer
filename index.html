@@ -40,7 +40,7 @@
   src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js"
   type="text/javascript"
 ></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.99.3/dist/umd/supabase.min.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html { scrollbar-gutter: stable; }
@@ -2827,11 +2827,8 @@
     if (!window.supabase || supabaseClient) return;
     supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       accessToken: async () => {
-        try {
-          var p = window.Clerk?.session?.getToken();
-          if (!p) return null;
-          return await Promise.race([p, new Promise(function(r) { setTimeout(function() { r(null); }, 5000); })]);
-        } catch (e) { return null; }
+        const t = await window.Clerk?.session?.getToken();
+        return t ?? null;
       }
     });
   }
@@ -2849,13 +2846,8 @@
             overlay.style.display = 'none';
             resetSignInForm();
           }
-          // Test: create client without accessToken callback
-          if (!supabaseClient && window.supabase) {
-            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-          }
-          setTimeout(function() {
-            loadAndMergeFromSupabase().catch(function(e) { console.error('merge error:', e); });
-          }, 3000);
+          initSupabase();
+          await loadAndMergeFromSupabase();
         } else {
           sessions = JSON.parse(localStorage.getItem('et_sessions') || '[]');
           renderSessions();
