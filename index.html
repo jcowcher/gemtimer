@@ -2944,10 +2944,13 @@
         return true;
       });
       localStorage.setItem('et_sessions', JSON.stringify(sessions));
-      document.title = 'MERGED: ' + sessions.length + ' sessions';
+      renderSessions();
+      renderHistory();
     } catch (e) {
-      document.title = 'ERR: ' + e.message;
+      console.error('Failed to load from Supabase:', e);
       sessions = JSON.parse(localStorage.getItem('et_sessions') || '[]');
+      renderSessions();
+      renderHistory();
     }
   }
 
@@ -5046,7 +5049,9 @@
 
   function splitSessionByDay(session) {
     var end = new Date(session.date);
-    var start = new Date(end.getTime() - session.duration * 1000);
+    if (isNaN(end.getTime())) return [{ dateStr: toDateKey(new Date()), duration: session.duration || 0 }];
+    var dur = Math.min(Math.max(session.duration || 0, 0), 86400); // cap at 24h
+    var start = new Date(end.getTime() - dur * 1000);
     var splits = [];
     var cursor = new Date(start);
     while (cursor < end) {
