@@ -1256,13 +1256,13 @@
   .dd-overlay-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 32px; flex: 1; overflow: hidden; min-height: 0; }
   .dd-trend-bottom { flex-shrink: 0; padding-top: 4px; padding-bottom: 16px; }
   .dd-overlay-cell { min-width: 0; overflow: hidden; display: flex; flex-direction: column; }
-  .dd-stats { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; }
+  .dd-stats { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
   .dd-stat-card {
-    flex: 1; background: var(--gray-50); border: 1px solid var(--gray-100);
-    border-radius: var(--radius); padding: 0.6rem 0.75rem;
+    flex: 1; min-width: 0; background: var(--gray-50); border: 1px solid var(--gray-100);
+    border-radius: var(--radius); padding: 0.5rem 0.65rem;
   }
-  .dd-stat-label { font-size: 0.65rem; color: var(--gray-500); margin-bottom: 0.2rem; }
-  .dd-stat-value { font-size: 1.5rem; font-weight: 700; color: var(--black); }
+  .dd-stat-label { font-size: 0.6rem; color: var(--gray-500); margin-bottom: 0.15rem; }
+  .dd-stat-value { font-size: 1.15rem; font-weight: 700; color: var(--black); }
 
   .dd-section-title { font-size: 0.72rem; font-weight: 600; color: var(--gray-500); letter-spacing: 0.02em; margin: 0 0 0.4rem; }
   .dd-section-title:first-child { margin-top: 0; }
@@ -5597,6 +5597,8 @@
 
     // Overall stats
     const totalFocusSec = filtered.reduce((sum, s) => sum + s.duration, 0);
+    const dailyAvgSec = trend.length > 0 ? Math.round(trend.reduce((sum, t) => sum + t.secs, 0) / trend.length) : 0;
+    const bestDaySec = trend.length > 0 ? Math.max(...trend.map(t => t.secs)) : 0;
     const peakHour = hourBuckets.reduce((best, b) => b.totalSec > best.totalSec ? b : best, hourBuckets[0]);
     const peakLabel = ((peakHour.hour % 12) || 12) + (peakHour.hour < 12 ? 'am' : 'pm');
 
@@ -5608,6 +5610,8 @@
     var r1Left = '';
     r1Left += '<div class="dd-stats">';
     r1Left += '<div class="dd-stat-card"><div class="dd-stat-label">Total Focus</div><div class="dd-stat-value">' + fmtTotal(totalFocusSec) + '</div></div>';
+    r1Left += '<div class="dd-stat-card"><div class="dd-stat-label">Daily Avg</div><div class="dd-stat-value">' + fmtTotal(dailyAvgSec) + '</div></div>';
+    r1Left += '<div class="dd-stat-card"><div class="dd-stat-label">Best Day</div><div class="dd-stat-value">' + fmtTotal(bestDaySec) + '</div></div>';
     r1Left += '<div class="dd-stat-card"><div class="dd-stat-label">Peak Hour</div><div class="dd-stat-value">' + peakLabel + '</div></div>';
     r1Left += '</div>';
     var heatmapHTML = '';
