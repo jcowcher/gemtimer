@@ -6,7 +6,7 @@ GemTimer — minimalist focus timer and productivity tracker at gemtimer.com.
 
 - **Frontend**: Single-page vanilla HTML/CSS/JS — everything lives in `index.html` (~5,675 lines, ~260KB). No framework, no build step, no package.json.
 - **Auth**: Clerk.js v5 (loaded from CDN). Custom sign-in form (not Clerk's mounted UI) for password manager compatibility.
-- **Database**: Supabase (PostgreSQL) — cloud session sync + quotes table. Migrations in `supabase/migrations/`.
+- **Database**: Supabase (PostgreSQL) via direct `fetch()` to REST API — cloud session sync, active timer sync, quotes table. Migrations in `supabase/migrations/`. The Supabase JS SDK was removed because it caused page freezes (likely a deadlock with Clerk's `getToken()` inside the auth listener).
 - **Storage**: localStorage-first, cloud sync for logged-in users. Key: `et_sessions`.
 - **Hosting**: Vercel (gemtimer.com). `vercel.json` redirects elementarytimer.com → gemtimer.com.
 - **Analytics**: Cloudflare Insights.
@@ -21,6 +21,7 @@ GemTimer — minimalist focus timer and productivity tracker at gemtimer.com.
 2. For logged-in users, sessions also save to Supabase
 3. On load, cloud sessions merge with local; dedup runs on `date|duration|name` key
 4. `_sb_id` is written back to localStorage after Supabase save (prevents future duplicates)
+5. Cross-device timer sync: `active_timer` table stores running timer state (started_at, accumulated seconds, activity, work type, pomodoro state). On page load, any active timer is restored using `accumulated + (now - started_at)`. Stale timers (>24h) are auto-deleted. No websockets needed.
 
 **Auth flow:** Clerk CDN script loads async → poll `window.Clerk` every 100ms (up to 10s) → custom sign-in state machine (email → password → OTP). OAuth providers also available.
 
@@ -58,7 +59,7 @@ Auth and cloud sync require the Clerk/Supabase keys in `.env.local` — but thes
 - Session history: add/edit/delete, grouped by day
 - Analytics: heatmap (GitHub-style), hourly focus map, streaks, weekly stats
 - 36 quote themes (Sherlock Holmes, Breaking Bad, Game of Thrones, etc.)
-- Theme picker with search + pill/chip UI
+- Notion-style theme dropdown with search filtering and keyboard navigation
 - Clerk auth with Supabase sync
 - Multi-language (en, es, fr, de, pt, ja)
 - Mobile responsive, touch-optimized
@@ -73,6 +74,7 @@ Read `NOTES.md` for full details. The most dangerous ones:
 4. **`void badge.offsetWidth`** — CSS animation reflow trick for lap badge; looks like dead code but isn't
 5. **`setTimeout(() => ctx.close(), 2500)`** — Web Audio cleanup; removing causes memory leaks on mobile
 6. **Quotes fetch race guard** — checks `activeThemeKey` after async return to discard stale results
+7. **Sort comparator NaN guard** — `.sort()` comparators must always return a valid number. Invalid date comparisons produce NaN, causing infinite loops in some browsers (especially Safari/WebKit). Use `|| 0` fallback.
 
 ## Conventions
 
@@ -90,12 +92,13 @@ Read `NOTES.md` for full details. The most dangerous ones:
 
 **`timer_history`**: id, user_id, duration (seconds), date (YYYY-MM-DD), name, type, manual, created_at
 **`quotes`**: id, quote, source_theme, character, created_at. RLS: public read, admin write.
+**`active_timer`**: user_id (PK), started_at (timestamptz), accumulated (integer, seconds), is_running (boolean), activity_name, work_type, pomodoro_mode, pomodoro_phase, updated_at. RLS: users manage own row.
 
 ## Non-Obvious Details
 
 - Spacebar = start/pause, R = finish session (keyboard shortcuts)
 - Easter eggs exist: typing certain keywords or clicking the logo 7 times triggers special quotes
-- Heatmap weeks always start Sunday, end Saturday (padding with empty days)
+- Heatmap weeks start Monday, end Sunday. The "1y" tab shows a rolling 365-day window. Month labels have collision detection — labels skip if they'd overlap the previous one.
 - Hourly focus map splits sessions across hour boundaries
 - Streak counter peeks at yesterday if today is empty
 - `@media (hover: none)` resets all hover states for touch devices
