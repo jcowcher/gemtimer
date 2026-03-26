@@ -25,6 +25,14 @@ GemTimer — minimalist focus timer and productivity tracker at gemtimer.com.
 
 **Auth flow:** Clerk CDN script loads async → poll `window.Clerk` every 100ms (up to 10s) → custom sign-in state machine (email → password → OTP). OAuth providers also available.
 
+**Three-column desktop layout** (~50%/25%/25%):
+- Column 1: Timer (centered), work type toggle, activity input, buttons, theme dropdown
+- Column 2: "Today's breakdown" header + Pomodoro, session list (scrollable), "Add a session", By Activity summary
+- Column 3: "History" header, Today/Daily Avg stats with work-type dots, week nav (centered), bar chart, Deep Dive button
+- Vertical divider lines between columns, full height (`align-items: stretch`)
+- Orange 2px header line under nav anchors the layout; grey footer line at bottom
+- Mobile collapses to single column
+
 **Quotes system:** 36 film/TV themes × 15 quotes each. Primary source: Supabase `quotes` table. Fallback: hardcoded `QUOTE_THEMES` object in JS. Fetched on theme select with race condition guard (stale theme check after async return).
 
 ## File Structure
@@ -53,10 +61,11 @@ Auth and cloud sync require the Clerk/Supabase keys in `.env.local` — but thes
 
 ## Key Features (Shipped)
 
+- Three-column desktop layout: timer (50%), sessions (25%), stats+history (25%)
 - Timer with circular progress ring + lap counter (chimes at 60min via Web Audio API)
-- Deep Work vs. Sustaining work type toggle
+- Deep Work vs. Sustaining work type toggle (tooltips match pill colors)
 - Pomodoro mode (25/5)
-- Session history: add/edit/delete, grouped by day
+- Session history: add/edit/delete, with daily bar chart
 - Deep Dive analytics: 4 stat boxes (Total Focus, Daily Avg, Best Day, Peak Hour), 1y heatmap (Mon–Sun, bigger squares, renders to current week), hourly focus, activity breakdown, daily trend
 - 36 quote themes with Notion-style dropdown (search, keyboard nav, hover tooltip)
 - Activity dropdown filtered by work type, with chevron and work-type-aware hover tints

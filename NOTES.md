@@ -103,3 +103,15 @@ Month labels on the 1y heatmap skip rendering if they'd overlap the previous lab
 **Work type tooltip border matches pill color**
 The `.wt-tooltip` has an orange border/shadow by default (Deep Work). A separate rule on `.work-type-btn[data-type="sustaining"] .wt-tooltip` overrides to charcoal border/shadow.
 `4340745`
+
+**Three-column layout — column structure**
+`.main` uses flexbox with `align-items: stretch` for full-height dividers. Timer section is `flex: 1 1 50%`, sessions and stats columns are `flex: 0 0 25%` each. Sessions column has `max-height: calc(100vh - 120px)` with scroll. Vertical dividers are `border-left/right: 0.5px solid var(--gray-200)` on the sessions column. Mobile collapses via `flex-direction: column`.
+`54d7b2a` → `2366a31`
+
+**Orange header line, grey footer line**
+Nav uses `nav::after` with `border-bottom: 2px solid var(--orange)` inset 40px each side. Footer uses `.site-footer::before` with `border-top: 1px solid var(--gray-200)` inset 40px. Both are `max-width: 1100px` centered. The `scrollbar-gutter: stable` was removed — it caused a centering mismatch between the main page and the fixed Deep Dive overlay.
+`7ef3c9b`, `b97d6b1`
+
+**Page freeze was corrupted data, not Supabase SDK**
+The page freeze was caused by a session with duration 1,774,493,487 seconds saved to `timer_history` from a cross-device sync bug. `splitSessionByDay` iterated once per day (~8000 iterations), freezing the browser. The Supabase SDK was temporarily replaced with direct fetch during debugging but restored once the real cause was found. The SDK removal was a red herring.
+`400f3d0`
