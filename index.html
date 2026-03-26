@@ -2527,8 +2527,8 @@
     document.querySelector('.section-title').textContent = t('todaysSessions');
     document.querySelector('.history-title').textContent = t('history');
     document.getElementById('avgLabel').textContent = t('dailyAvg');
-    document.getElementById('themeInput').placeholder = t('tryTheme');
-    document.getElementById('themeClear').title = t('resetSherlock');
+    var themeSearchEl = document.getElementById('themeSearch');
+    if (themeSearchEl) themeSearchEl.placeholder = t('tryTheme');
     document.querySelector('.quote-dismiss').textContent = t('clickDismiss');
     document.getElementById('privacyLink').textContent = t('privacyPolicy');
     document.getElementById('weekPrev').title = t('previousWeek');
