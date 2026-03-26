@@ -2400,6 +2400,13 @@
 </div>
 
 <script>
+window.onerror = function(msg, url, line) {
+  document.title = 'ERR L' + line + ': ' + msg;
+  var d = document.createElement('div');
+  d.style.cssText = 'position:fixed;top:0;left:0;right:0;background:red;color:white;padding:8px;z-index:99999;font-size:12px;';
+  d.textContent = 'JS Error line ' + line + ': ' + msg;
+  document.body.appendChild(d);
+};
   // Elements
   const display = document.getElementById('display');
   const timerWrap = document.getElementById('timerWrap');
