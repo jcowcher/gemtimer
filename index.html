@@ -2977,8 +2977,15 @@
     }, 1500);
   }
 
+  let _activeTimerLoaded = false;
+
   async function loadActiveTimer() {
     if (!currentUser || !supabaseClient) return;
+    // Only load once per session — prevent Clerk listener re-entry
+    if (_activeTimerLoaded) return;
+    // Don't overwrite a locally running timer
+    if (running || elapsed > 0) return;
+    _activeTimerLoaded = true;
     try {
       var res = await supabaseClient.from('active_timer').select('*').eq('user_id', currentUser.id).maybeSingle();
       if (res.error) throw res.error;
@@ -2987,11 +2994,15 @@
 
       var currentElapsed;
       if (data.is_running && data.started_at) {
-        currentElapsed = data.accumulated + Math.floor((Date.now() - new Date(data.started_at).getTime()) / 1000);
+        var startMs = new Date(data.started_at).getTime();
+        if (isNaN(startMs)) { currentElapsed = data.accumulated || 0; }
+        else { currentElapsed = (data.accumulated || 0) + Math.floor((Date.now() - startMs) / 1000); }
       } else {
-        currentElapsed = data.accumulated;
+        currentElapsed = data.accumulated || 0;
       }
-      if (currentElapsed < 0) currentElapsed = 0;
+      // Sanity: clamp to 0..86400 (24 hours max)
+      if (isNaN(currentElapsed) || currentElapsed < 0) currentElapsed = 0;
+      if (currentElapsed > 86400) currentElapsed = 0;
 
       if (data.pomodoro_mode) {
         resumePomodoroFromSync(data, currentElapsed);
@@ -3004,6 +3015,8 @@
   }
 
   function resumeNormalFromSync(data, currentElapsed) {
+    // Clear any existing timer to prevent duplicate intervals
+    if (interval) { clearInterval(interval); interval = null; }
     elapsed = currentElapsed;
     elapsedBeforePause = currentElapsed;
     currentWorkType = data.work_type || 'deep';
@@ -3051,6 +3064,8 @@
   }
 
   function resumePomodoroFromSync(data, currentElapsed) {
+    // Clear any existing timer to prevent duplicate intervals
+    if (interval) { clearInterval(interval); interval = null; }
     var target = (data.pomodoro_phase === 'break') ? POMO_BREAK : POMO_WORK;
 
     // Phase expired while away
@@ -4727,6 +4742,7 @@
     display.classList.add('visible');
     statusLabel.textContent = t('pomodoro');
     statusLabel.className = 'time-label idle-label';
+    _activeTimerLoaded = false;
     deleteActiveTimer();
   }
 
@@ -4756,6 +4772,7 @@
     statusLabel.className = 'time-label idle-label';
     timerBody.classList.remove('running');
     timerWrap.classList.remove('active');
+    _activeTimerLoaded = false;
     deleteActiveTimer();
   }
 
@@ -4810,6 +4827,7 @@
     startTime = null;
     elapsedBeforePause = 0;
     completedLaps = 0;
+    _activeTimerLoaded = false;
     deleteActiveTimer();
 
     // Reset UI to ready-for-next-round state
@@ -4896,7 +4914,8 @@
     const savedElapsed = elapsed;
     const savedName = sessionInput.value.trim() || t('deepWork');
     const savedType = currentWorkType;
-    deleteActiveTimer();
+    _activeTimerLoaded = false;
+    await deleteActiveTimer();
 
     // Stop timer immediately before any async work
     clearInterval(interval);
