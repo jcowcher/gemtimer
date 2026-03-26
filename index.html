@@ -2935,7 +2935,7 @@
       const localOnly = localSessions.filter(s => !s._sb_id);
 
       sessions = [...cloudSessions, ...localOnly];
-      sessions.sort((a, b) => new Date(a.date) - new Date(b.date));
+      sessions.sort((a, b) => (new Date(a.date).getTime() || 0) - (new Date(b.date).getTime() || 0));
       const seenKeys = new Set();
       sessions = sessions.filter(s => {
         const key = s.date + '|' + s.duration + '|' + (s.name || '');
