@@ -40,7 +40,7 @@
   src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js"
   type="text/javascript"
 ></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.99.3/dist/umd/supabase.min.js"></script>
+<!-- Supabase JS client removed — using direct fetch instead -->
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html { scrollbar-gutter: stable; }
@@ -2823,14 +2823,23 @@
   });
 
   // ── Auth & Supabase ──────────────────────────────────
+  // Direct fetch helpers — bypass supabase-js client to avoid main-thread freeze
+  async function sbHeaders() {
+    var h = { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
+    try { var t = await window.Clerk?.session?.getToken(); if (t) h['Authorization'] = 'Bearer ' + t; } catch(e) {}
+    return h;
+  }
+  async function sbFetch(path, opts) {
+    var h = await sbHeaders();
+    var res = await fetch(SUPABASE_URL + '/rest/v1/' + path, Object.assign({ headers: h }, opts || {}));
+    var body = null;
+    var text = await res.text();
+    try { body = text ? JSON.parse(text) : null; } catch(e) {}
+    if (!res.ok) throw new Error((body && body.message) || 'Supabase error ' + res.status);
+    return body;
+  }
   function initSupabase() {
-    if (!window.supabase || supabaseClient) return;
-    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      accessToken: async () => {
-        const t = await window.Clerk?.session?.getToken();
-        return t ?? null;
-      }
-    });
+    supabaseClient = true;
   }
 
   async function initAuth() {
@@ -2846,16 +2855,8 @@
             overlay.style.display = 'none';
             resetSignInForm();
           }
-          // Debug: raw fetch test, no Supabase client
-          setTimeout(function() {
-            fetch(SUPABASE_URL + '/rest/v1/timer_history?select=id&limit=1', {
-              headers: { 'apikey': SUPABASE_ANON_KEY }
-            }).then(function(r) { return r.json(); }).then(function(d) {
-              document.title = 'FETCH OK: ' + JSON.stringify(d).substring(0, 50);
-            }).catch(function(e) {
-              document.title = 'FETCH ERR: ' + e.message;
-            });
-          }, 3000);
+          initSupabase();
+          await loadAndMergeFromSupabase();
         } else {
           sessions = JSON.parse(localStorage.getItem('et_sessions') || '[]');
           renderSessions();
@@ -2921,12 +2922,7 @@
   async function loadAndMergeFromSupabase() {
     if (!currentUser || !supabaseClient) return;
     try {
-      const { data, error } = await supabaseClient
-        .from('timer_history')
-        .select('*')
-        .eq('user_id', currentUser.id)
-        .order('date', { ascending: true });
-      if (error) throw error;
+      const data = await sbFetch('timer_history?select=*&user_id=eq.' + encodeURIComponent(currentUser.id) + '&order=date.asc');
 
       const localSessions = JSON.parse(localStorage.getItem('et_sessions') || '[]');
       if (localSessions.length > 0 && data.length === 0) {
@@ -2974,7 +2970,7 @@
       });
       // Remove duplicates from Supabase
       if (dupIds.length > 0) {
-        supabaseClient.from('timer_history').delete().in('id', dupIds).then(() => {});
+        sbFetch('timer_history?id=in.(' + dupIds.map(encodeURIComponent).join(',') + ')', { method: 'DELETE' }).catch(function() {});
       }
       localStorage.setItem('et_sessions', JSON.stringify(sessions));
 
@@ -2999,11 +2995,8 @@
         date: s.date,
         type: s.type || 'deep'
       }));
-      const { data: inserted, error } = await supabaseClient
-        .from('timer_history')
-        .insert(rows)
-        .select();
-      if (!error && inserted && inserted.length === rows.length) {
+      const inserted = await sbFetch('timer_history', { method: 'POST', body: JSON.stringify(rows) });
+      if (inserted && inserted.length === rows.length) {
         localStorage.removeItem('et_sessions');
         await loadAndMergeFromSupabase();
       }
@@ -3015,9 +3008,9 @@
   async function saveSessionToSupabase(session) {
     if (!currentUser || !supabaseClient) return null;
     try {
-      const { data, error } = await supabaseClient
-        .from('timer_history')
-        .insert({
+      var rows = await sbFetch('timer_history', {
+        method: 'POST',
+        body: JSON.stringify({
           user_id: currentUser.id,
           duration: session.duration,
           name: session.name,
@@ -3025,10 +3018,8 @@
           manual: session.manual || false,
           type: session.type || 'deep'
         })
-        .select()
-        .single();
-      if (error) throw error;
-      return data;
+      });
+      return (rows && rows[0]) || null;
     } catch (e) {
       console.error('Failed to save to Supabase:', e);
       return null;
@@ -3038,11 +3029,7 @@
   async function deleteSessionFromSupabase(sbId) {
     if (!currentUser || !supabaseClient || !sbId) return;
     try {
-      await supabaseClient
-        .from('timer_history')
-        .delete()
-        .eq('id', sbId)
-        .eq('user_id', currentUser.id);
+      await sbFetch('timer_history?id=eq.' + encodeURIComponent(sbId) + '&user_id=eq.' + encodeURIComponent(currentUser.id), { method: 'DELETE' });
     } catch (e) {
       console.error('Failed to delete from Supabase:', e);
     }
@@ -4471,12 +4458,8 @@
     }
     try {
       if (!supabaseClient) return; // not initialized yet, keep hardcoded
-      const { data, error } = await supabaseClient
-        .from('quotes')
-        .select('quote, character')
-        .eq('source_theme', themeName)
-        .limit(10);
-      if (error || !data || data.length === 0) return; // keep hardcoded fallback
+      var data = await sbFetch('quotes?select=quote,character&source_theme=eq.' + encodeURIComponent(themeName) + '&limit=10');
+      if (!data || data.length === 0) return; // keep hardcoded fallback
       const mapped = data.map(r => ({
         text: '\u201c' + r.quote + '\u201d',
         attr: r.character || themeName
@@ -6081,11 +6064,10 @@
     btn.textContent = 'Sending...';
     try {
       if (!supabaseClient) throw new Error('Not connected');
-      const { error } = await supabaseClient.from('feedback').insert({
-        message,
-        user_id: currentUser ? currentUser.id : null
+      await sbFetch('feedback', {
+        method: 'POST',
+        body: JSON.stringify({ message: message, user_id: currentUser ? currentUser.id : null })
       });
-      if (error) throw error;
       textarea.value = '';
       document.getElementById('feedbackOverlay').classList.remove('active');
       showFeedbackToast('Thanks for your feedback!');
