@@ -105,8 +105,12 @@ The `.wt-tooltip` has an orange border/shadow by default (Deep Work). A separate
 `4340745`
 
 **Three-column layout — column structure**
-`.main` uses flexbox with `align-items: stretch` for full-height dividers. Timer section is `flex: 1 1 50%`, sessions and stats columns are `flex: 0 0 25%` each. Sessions column has `max-height: calc(100vh - 120px)` with scroll. Vertical dividers are `border-left/right: 0.5px solid var(--gray-200)` on the sessions column. Mobile collapses via `flex-direction: column`.
-`54d7b2a` → `2366a31`
+`.main` uses flexbox with `align-items: stretch` for full-height dividers. CSS `order` reorders columns visually (HTML order: timer, sessions, stats → visual order: sessions left, timer center, stats right). Timer section is `flex: 1 1 50%` (order: 2), sessions and stats columns are `flex: 0 0 25%` each (order: 1 and 3). Sessions column has no max-height cap — grows naturally. Vertical dividers are `border-right` on sessions column and `border-left` on stats column. Mobile collapses via `flex-direction: column` with order reset (timer first).
+`54d7b2a` → `3623fee`
+
+**Mobile landing page optimizations**
+Landing clock hidden (`display: none`), landing footer hidden, hero heading shrunk to 16px (matches card headings), CTA button shrunk, nav Sign in / Get started buttons tighter (12px, 5px/10px padding, 6px gap). The `.landing-footer { display: none }` media query must come AFTER the base `.landing-footer` rule in CSS to avoid being overridden.
+`645a47b` → `6e6a7f6`
 
 **Orange header line, grey footer line**
 Nav uses `nav::after` with `border-bottom: 2px solid var(--orange)` inset 40px each side. Footer uses `.site-footer::before` with `border-top: 1px solid var(--gray-200)` inset 40px. Both are `max-width: 1100px` centered. The `scrollbar-gutter: stable` was removed — it caused a centering mismatch between the main page and the fixed Deep Dive overlay.

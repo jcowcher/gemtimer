@@ -25,13 +25,14 @@ GemTimer — minimalist focus timer and productivity tracker at gemtimer.com.
 
 **Auth flow:** Clerk CDN script loads async → poll `window.Clerk` every 100ms (up to 10s) → custom sign-in state machine (email → password → OTP). OAuth providers also available.
 
-**Three-column desktop layout** (~50%/25%/25%):
-- Column 1: Timer (centered), work type toggle, activity input, buttons, theme dropdown
-- Column 2: "Today's breakdown" header + Pomodoro, session list (scrollable), "Add a session", By Activity summary
-- Column 3: "History" header, Today/Daily Avg stats with work-type dots, week nav (centered), bar chart, Deep Dive button
+**Three-column desktop layout** (left 25% / center 50% / right 25%):
+- Left: "Today's breakdown" header + Pomodoro, session list, "Add a session", By Activity, By type of work (Deep Work / Sustaining split)
+- Center: Timer (centered), work type toggle, activity input with chevron, buttons, theme dropdown
+- Right: "History" header, Today/Daily Avg stats, week nav (centered), bar chart, Deep Dive button
+- CSS `order` reorders visually (HTML: timer, sessions, stats)
 - Vertical divider lines between columns, full height (`align-items: stretch`)
-- Orange 2px header line under nav anchors the layout; grey footer line at bottom
-- Mobile collapses to single column
+- Orange 2px header line under nav; grey footer line at bottom
+- Mobile collapses to single column (timer first); landing page hides clock and footer on mobile
 
 **Quotes system:** 36 film/TV themes × 15 quotes each. Primary source: Supabase `quotes` table. Fallback: hardcoded `QUOTE_THEMES` object in JS. Fetched on theme select with race condition guard (stale theme check after async return).
 
@@ -61,7 +62,7 @@ Auth and cloud sync require the Clerk/Supabase keys in `.env.local` — but thes
 
 ## Key Features (Shipped)
 
-- Three-column desktop layout: timer (50%), sessions (25%), stats+history (25%)
+- Three-column desktop layout: sessions (left), timer (center), history (right)
 - Timer with circular progress ring + lap counter (chimes at 60min via Web Audio API)
 - Deep Work vs. Sustaining work type toggle (tooltips match pill colors)
 - Pomodoro mode (25/5)

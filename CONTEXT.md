@@ -15,7 +15,7 @@ Knowledge workers and students who want a clean, no-nonsense timer to track how 
 - **Analytics**: Cloudflare Insights
 
 ## What's built
-- Three-column desktop layout: timer (~50%), today's sessions (~25%), stats+history (~25%)
+- Three-column desktop layout: sessions (left 25%), timer (center 50%), history (right 25%)
 - Start/pause/reset timer with visual progress ring and lap counter (60min+)
 - Deep Work vs. Sustaining work type toggle (tooltips match pill colors)
 - Pomodoro mode (25/5)
@@ -28,10 +28,11 @@ Knowledge workers and students who want a clean, no-nonsense timer to track how 
 - Multi-language support, mobile responsive, streak tracking
 
 ## Active work
-- Three-column layout: timer / sessions / stats+history with orange header line
+- Three-column layout: sessions (left) / timer (center) / history (right), orange header line
+- "By type of work" section in left column shows Deep Work / Sustaining split
 - Cross-device timer sync via `active_timer` table (with tick() 24h safety net)
 - Deep Dive analytics: 4 stat boxes, 1y heatmap, content width constrained to header line
 - Theme picker: Notion-style dropdown with search and tooltip
 - Activity dropdown: filtered by work type, chevron, hover tints
-- Font sizes standardized across columns 2 and 3
+- Mobile: landing page hides clock and footer, smaller nav buttons and hero text
 - Supabase JS SDK pinned to v2.98.0, Clerk unpinned @5
