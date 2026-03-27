@@ -2013,7 +2013,6 @@
     .landing-nav { padding: 10px 20px; }
     .landing-nav::after { left: 20px; right: 20px; }
     .landing-modes { padding: 8px 20px 24px; }
-    .landing-footer { display: none; }
     .landing-footer::before { left: 20px; right: 20px; }
     .why-overlay { padding: 60px 20px 80px; }
     .why-overlay-content h2 { font-size: 26px; }
@@ -2096,6 +2095,9 @@
     width: 7rem;
   }
 
+  @media (max-width: 768px) {
+    .landing-footer { display: none; }
+  }
   .footer-left { position: relative; }
 
   .lang-picker-btn {
