@@ -5616,9 +5616,11 @@
     const nineMonthsAgo = new Date(today);
     nineMonthsAgo.setMonth(nineMonthsAgo.getMonth() - 9);
 
+    const calendarYear = jan1 >= nineMonthsAgo;
+
     let startDate;
-    if (jan1 >= nineMonthsAgo) {
-      // Calendar-year view (Jan 1 → now)
+    if (calendarYear) {
+      // Calendar-year view (Jan 1 → Dec 31)
       startDate = new Date(jan1);
     } else {
       // Rolling 1-year view
@@ -5632,8 +5634,13 @@
     const rewind = startDay === 0 ? 6 : startDay - 1; // Mon=0 rewind
     startDate.setDate(startDate.getDate() - rewind);
 
-    // End on the Sunday of the current week
-    let endDate = new Date(today);
+    // End date: full year (Dec 31) for calendar-year view, current week for rolling
+    let endDate;
+    if (calendarYear) {
+      endDate = new Date(today.getFullYear(), 11, 31);
+    } else {
+      endDate = new Date(today);
+    }
     const endDay = endDate.getDay();
     if (endDay !== 0) endDate.setDate(endDate.getDate() + (7 - endDay));
 
