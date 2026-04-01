@@ -2760,11 +2760,18 @@
   try { sessions = JSON.parse(localStorage.getItem('et_sessions') || '[]'); }
   catch { sessions = []; }
   // One-time dedup: remove sessions with identical date+duration+name
+  // Normalise date to YYYY-MM-DD so ISO timestamps and plain dates match
+  function dedupDateKey(d) {
+    if (!d) return '';
+    var p = new Date(d);
+    if (isNaN(p.getTime())) return String(d);
+    return p.getFullYear() + '-' + String(p.getMonth() + 1).padStart(2, '0') + '-' + String(p.getDate()).padStart(2, '0');
+  }
   (function dedup() {
     const seen = new Set();
     const before = sessions.length;
     sessions = sessions.filter(s => {
-      const key = s.date + '|' + s.duration + '|' + (s.name || '');
+      const key = dedupDateKey(s.date) + '|' + s.duration + '|' + (s.name || '');
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
@@ -2960,7 +2967,7 @@
       sessions.sort((a, b) => (new Date(a.date).getTime() || 0) - (new Date(b.date).getTime() || 0));
       const seenKeys = new Set();
       sessions = sessions.filter(s => {
-        const key = s.date + '|' + s.duration + '|' + (s.name || '');
+        const key = dedupDateKey(s.date) + '|' + s.duration + '|' + (s.name || '');
         if (seenKeys.has(key)) return false;
         seenKeys.add(key);
         return true;
