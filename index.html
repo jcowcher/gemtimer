@@ -2447,7 +2447,7 @@
 <div id="clerkOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;">
   <div style="position:relative;background:var(--white);border-radius:12px;padding:2.25rem 2rem 1.75rem;width:370px;max-width:90vw;box-shadow:0 16px 48px rgba(0,0,0,0.2);">
     <button id="clerkClose" style="position:absolute;top:1rem;right:1rem;width:24px;height:24px;border:none;background:none;cursor:pointer;font-size:20px;color:var(--gray-400);display:flex;align-items:center;justify-content:center;padding:0;line-height:1;">&times;</button>
-    <h2 id="signInHeading" style="font-size:1.4rem;font-weight:700;margin-bottom:1.5rem;text-align:center;color:var(--black);">Log in to Gem<span style="color:var(--orange)">Timer</span></h2>
+    <h2 id="signInHeading" style="font-size:1.4rem;font-weight:700;margin-bottom:1.5rem;text-align:center;color:var(--black);">Sign in to Gem<span style="color:var(--orange)">Timer</span></h2>
     <div id="signInOAuth" style="display:flex;flex-direction:column;gap:0.5rem;margin-bottom:1rem;"></div>
     <div id="signInDivider" style="display:none;align-items:center;gap:0.75rem;color:var(--gray-400);font-size:0.75rem;margin-bottom:1rem;"><div style="flex:1;height:1px;background:var(--gray-200);"></div>or<div style="flex:1;height:1px;background:var(--gray-200);"></div></div>
     <form id="signInForm" autocomplete="on">
@@ -2470,7 +2470,7 @@
       </div>
       <button id="signInSubmit" type="submit"
         style="width:100%;padding:0.65rem;background:var(--black);color:#fff;border:none;border-radius:20px;font-family:inherit;font-size:0.88rem;font-weight:600;cursor:pointer;transition:opacity 0.15s;letter-spacing:0.02em;"
-        onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">LOG IN</button>
+        onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">SIGN IN</button>
     </form>
     <p id="signInToggle" style="text-align:center;font-size:0.82rem;color:var(--gray-500);margin-top:1.25rem;">Don't have an account? <a href="#" id="signInToggleLink" style="color:var(--orange);text-decoration:none;font-weight:500;">Create one here</a></p>
   </div>
@@ -3300,10 +3300,10 @@
       heading.textContent = 'Create your account';
       submitBtn.textContent = 'CREATE ACCOUNT';
       forgotWrap.style.display = 'none';
-      toggleText.innerHTML = 'Already have an account? <a href="#" id="signInToggleLink" style="color:var(--orange);text-decoration:none;font-weight:500;">Log in</a>';
+      toggleText.innerHTML = 'Already have an account? <a href="#" id="signInToggleLink" style="color:var(--orange);text-decoration:none;font-weight:500;">Sign in</a>';
     } else {
-      heading.innerHTML = 'Log in to Gem<span style="color:var(--orange)">Timer</span>';
-      submitBtn.textContent = 'LOG IN';
+      heading.innerHTML = 'Sign in to Gem<span style="color:var(--orange)">Timer</span>';
+      submitBtn.textContent = 'SIGN IN';
       forgotWrap.style.display = 'block';
       toggleText.innerHTML = 'Don\'t have an account? <a href="#" id="signInToggleLink" style="color:var(--orange);text-decoration:none;font-weight:500;">Create one here</a>';
     }
@@ -3463,7 +3463,7 @@
         }
       }
 
-      submitBtn.textContent = 'LOG IN';
+      submitBtn.textContent = 'SIGN IN';
       submitBtn.disabled = false;
     } catch (err) {
       const msg = err.errors ? (err.errors[0].longMessage || err.errors[0].message) : 'Something went wrong. Please try again.';
