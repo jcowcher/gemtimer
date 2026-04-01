@@ -23,7 +23,7 @@ GemTimer — minimalist focus timer and productivity tracker at gemtimer.com.
 4. `_sb_id` is written back to localStorage after Supabase save (prevents future duplicates)
 5. Cross-device timer sync: `active_timer` table stores running timer state (started_at, accumulated seconds, activity, work type, pomodoro state). On page load, any active timer is restored using `accumulated + (now - started_at)`. Stale timers (>24h) are auto-deleted. No websockets needed.
 
-**Auth flow:** Clerk CDN script loads async → poll `window.Clerk` every 100ms (up to 10s) → custom sign-in state machine (email → password → OTP). OAuth providers also available.
+**Auth flow:** Clerk CDN script loads async → poll `window.Clerk` every 100ms (up to 10s) → custom sign-in form (email + password shown together for password manager compatibility, OTP fallback). OAuth buttons (e.g. Google) shown above the form. Forgot Password triggers Clerk's reset_password_email_code flow.
 
 **Three-column desktop layout** (left 25% / center 50% / right 25%):
 - Left: "Today's breakdown" header + Pomodoro, session list, "Add a session", By Activity, By type of work (Deep Work / Sustaining split)

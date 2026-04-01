@@ -5,8 +5,8 @@ Non-obvious decisions, workarounds, and things that bit me.
 ---
 
 **Clerk custom sign-in form instead of mounted component**
-Clerk's pre-built UI doesn't play well with 1Password autofill. Built a custom email/password/OTP state machine to get native `<input>` fields that password managers recognize.
-`00843bc`
+Clerk's pre-built UI doesn't play well with 1Password autofill. Built a custom sign-in form with native `<input>` fields that password managers recognize. Email and password fields are shown simultaneously (not two-step) so mobile password managers (1Password) can detect and autofill both. OAuth buttons (Google) appear above the form with an "or" divider. Forgot Password triggers Clerk's `reset_password_email_code` flow.
+`00843bc`, `84b9735`
 
 **Clerk polling on load (100ms × 100 attempts)**
 Clerk script loads async from CDN and sometimes takes seconds. Poll for `window.Clerk` up to 10s, then degrade to unauthenticated mode. Without this, auth silently breaks on slow connections.
