@@ -1940,7 +1940,6 @@
   .clock-date { text-align: right; }
   .clock-time { text-align: left;
   }
-  .landing-nav-center { display: flex; gap: 24px; align-items: center; position: absolute; left: 50%; transform: translateX(-50%); }
   .landing-nav-link {
     font-size: 14px;
     font-weight: 400;
@@ -2027,7 +2026,6 @@
     .landing-btn-ghost { font-size: 12px; padding: 5px 10px; }
     .landing-btn-primary { font-size: 12px; padding: 5px 10px; }
     .landing-nav-right { gap: 6px; }
-    .landing-nav-center { position: static; transform: none; gap: 16px; }
     .landing-nav-link { font-size: 12px; }
     .landing-nav { padding: 10px 20px; }
     .landing-nav::after { left: 20px; right: 20px; }
@@ -2224,11 +2222,10 @@
   <nav class="landing-nav">
     <div class="landing-nav-left">
       <div class="landing-logo">Gem<span>Timer</span></div>
-    </div>
-    <div class="landing-nav-center">
       <a class="landing-nav-link" id="landingWhyLink">The Why</a>
       <a class="landing-nav-link" id="landingWhatLink">The What</a>
     </div>
+    <div class="landing-clock" id="landingClock"></div>
     <div class="landing-nav-right">
       <button class="landing-btn-ghost" id="landingSignIn">Sign in</button>
       <button class="landing-btn-primary" id="landingGetStarted">Get started</button>
