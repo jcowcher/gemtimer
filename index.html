@@ -1708,15 +1708,21 @@
 
     .timer-wrap { width: 280px; height: 280px; }
     .time-digits { font-size: 2.8rem; }
-    .deep-dive-panel { padding: 12px 0 0; }
+    .deep-dive-panel { padding: 12px 0 0; overflow-y: auto; overflow-x: hidden; }
+    #deepDiveContent { overflow: visible; flex: none; }
     .dd-nav { padding: 0 20px 10px; }
     .dd-nav::after { left: 20px; right: 20px; }
     .dd-header { padding: 0 20px; }
-    .dd-overlay-body { padding: 0 20px; }
-    .dd-overlay-grid { grid-template-columns: 1fr; overflow: hidden; }
+    .dd-overlay-body { padding: 0 20px; overflow: visible; flex: none; }
+    .dd-overlay-grid { grid-template-columns: 1fr; overflow: visible; flex: none; }
+    .dd-overlay-cell { overflow: visible; }
     .dd-stats { flex-direction: column; }
     .dd-tod-grid { grid-template-columns: 1fr; }
+    .dd-heatmap-top { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .dd-hour-grid { overflow: visible; }
     .dd-hour-row { height: 12px; }
+    .dd-trend-bottom { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .dd-trend-card { min-width: 400px; }
   }
 
   /* Footer */
