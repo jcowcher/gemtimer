@@ -1446,33 +1446,52 @@
   .add-session-row * { pointer-events: none; }
   .sidebar-toggles {
     display: flex;
-    gap: 0.4rem;
-    margin-top: 0.6rem;
-    justify-content: center;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-top: 0.75rem;
   }
-  .sidebar-pill {
-    border: 1px solid var(--gray-200);
-    background: none;
-    color: var(--gray-400);
-    font-family: inherit;
-    font-size: 0.65rem;
-    font-weight: 600;
-    padding: 0.3rem 0.7rem;
-    border-radius: 100px;
+  .sidebar-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     cursor: pointer;
-    transition: all 0.15s;
-    line-height: 1;
+    border: none;
+    background: none;
+    padding: 0;
+    font-family: inherit;
   }
-  .sidebar-pill:hover {
-    border-color: var(--gray-400);
-    color: var(--gray-600);
+  .sidebar-toggle-row .toggle-label {
+    font-size: 0.68rem;
+    color: var(--gray-400);
+    font-weight: 500;
   }
-  .sidebar-pill.active {
+  .sidebar-toggle-row .toggle-track {
+    position: relative;
+    width: 28px;
+    height: 16px;
+    background: var(--gray-200);
+    border-radius: 16px;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .sidebar-toggle-row .toggle-track::before {
+    content: '';
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    left: 2px;
+    top: 2px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.2s;
+  }
+  .sidebar-toggle-row.active .toggle-track {
     background: var(--orange);
-    border-color: transparent;
-    color: #fff;
   }
-  .sidebar-pill.hide { display: none; }
+  .sidebar-toggle-row.active .toggle-track::before {
+    transform: translateX(12px);
+  }
+  .sidebar-toggle-row.hide { display: none; }
 
   .add-session-icon {
     display: inline-flex; align-items: center; justify-content: center;
@@ -2441,8 +2460,8 @@
     </button>
 
     <div class="sidebar-toggles">
-      <button class="sidebar-pill" id="pomodoroBtn">Pomodoro</button>
-      <button class="sidebar-pill" id="screenOnBtn">Stay awake</button>
+      <button class="sidebar-toggle-row" id="pomodoroBtn"><span class="toggle-label">Pomodoro</span><span class="toggle-track"></span></button>
+      <button class="sidebar-toggle-row" id="screenOnBtn"><span class="toggle-label">Stay awake</span><span class="toggle-track"></span></button>
     </div>
 
     <div class="deep-dive-panel" id="deepDivePanel">
@@ -4922,11 +4941,7 @@
   const pomodoroBtn = document.getElementById('pomodoroBtn');
 
   function syncPomoPillColor() {
-    if (pomodoroMode) {
-      var c = currentWorkType === 'sustaining' ? 'var(--gray-900)' : 'var(--orange)';
-      pomodoroBtn.style.background = c;
-      pomodoroBtn.style.borderColor = 'transparent';
-    }
+    // no-op: toggle switch uses .active class only
   }
 
   function enterPomodoro() {
@@ -4972,8 +4987,6 @@
     // Update button
     pomodoroBtn.childNodes[0].textContent = t('pomodoro');
     pomodoroBtn.classList.remove('active');
-    pomodoroBtn.style.background = '';
-    pomodoroBtn.style.borderColor = '';
 
     // Reset display to normal count-up mode
     updateDisplay();
