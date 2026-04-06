@@ -1844,7 +1844,8 @@
     margin-bottom: 36px;
     max-width: 420px;
   }
-  .landing-hero-cta { display: flex; gap: 14px; align-items: center; }
+  .landing-hero-cta { display: flex; gap: 14px; align-items: center; grid-column: 1; }
+  .landing-hero-visual { grid-column: 2; grid-row: 1 / 3; }
   .landing-btn-large {
     background: var(--orange);
     border: none;
@@ -2044,7 +2045,9 @@
     .landing-hero { grid-template-columns: 1fr; gap: 6px; padding: 20px 0 8px; }
     .landing-hero-text { text-align: center; }
     .landing-hero-text h1 { font-size: 16px; margin-bottom: 6px; line-height: 1.8; }
-    .landing-hero-cta { justify-content: center; margin-bottom: 4px; }
+    .landing-hero-text { order: 1; }
+    .landing-hero-visual { order: 2; grid-column: auto; grid-row: auto; }
+    .landing-hero-cta { justify-content: center; order: 3; grid-column: auto; margin-bottom: 4px; }
     .landing-btn-large { font-size: 13px; padding: 8px 20px; border-radius: 8px; }
     .landing-timer-preview { padding-top: 0; }
     .landing-timer-wrap { width: 150px; height: 150px; }
@@ -2268,9 +2271,6 @@
     <section class="landing-hero">
       <div class="landing-hero-text">
         <h1>The clock runs.<br/>Know where your <em>time</em> goes.</h1>
-        <div class="landing-hero-cta">
-          <button class="landing-btn-large" id="landingCta">Start tracking &mdash; free</button>
-        </div>
       </div>
 
       <div class="landing-hero-visual">
@@ -2291,6 +2291,10 @@
             </div>
           </div>
         </div>
+      </div>
+
+      <div class="landing-hero-cta">
+        <button class="landing-btn-large" id="landingCta">Start tracking &mdash; free</button>
       </div>
     </section>
 
