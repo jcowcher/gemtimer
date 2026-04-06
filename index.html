@@ -5146,37 +5146,54 @@
 
   if (screenOnActive) screenOnBtn.classList.add('active');
 
+  // Play silent video synchronously — MUST be called directly from a user gesture (click/tap)
+  // on iOS, or the browser will reject .play(). Do not wrap in async or call from a callback.
+  function playNoSleepVideo() {
+    if (!noSleepVideo || !noSleepVideo.paused) return;
+    console.log('[WakeLock] playing silent video (from user gesture)...');
+    try {
+      var playPromise = noSleepVideo.play();
+      if (playPromise) playPromise.catch(function(e) {
+        console.error('[WakeLock] silent video play denied:', e.name, e.message);
+      });
+    } catch (e) {
+      console.error('[WakeLock] silent video error:', e.name, e.message);
+    }
+  }
+
+  function stopNoSleepVideo() {
+    if (noSleepVideo && !noSleepVideo.paused) {
+      console.log('[WakeLock] stopping silent video');
+      noSleepVideo.pause();
+    }
+  }
+
   async function acquireWakeLock() {
     if (!screenOnActive || !running) {
       console.log('[WakeLock] skip acquire — toggle:', screenOnActive, 'running:', running);
       return;
     }
-    if (hasNativeWakeLock) {
-      if (wakeLockSentinel) {
-        console.log('[WakeLock] skip acquire — already held');
-        return;
-      }
-      console.log('[WakeLock] requesting native lock...');
-      try {
-        wakeLockSentinel = await navigator.wakeLock.request('screen');
-        console.log('[WakeLock] native lock acquired');
-        wakeLockSentinel.addEventListener('release', function() {
-          console.log('[WakeLock] native lock released by browser');
-          wakeLockSentinel = null;
-        });
-      } catch (e) {
-        console.error('[WakeLock] native request denied:', e.name, e.message);
-      }
-    } else if (noSleepVideo) {
-      console.log('[WakeLock] starting silent video fallback...');
-      try {
-        var playPromise = noSleepVideo.play();
-        if (playPromise) playPromise.catch(function(e) {
-          console.error('[WakeLock] silent video play denied:', e.name, e.message);
-        });
-      } catch (e) {
-        console.error('[WakeLock] silent video error:', e.name, e.message);
-      }
+    if (!hasNativeWakeLock) {
+      // For the video fallback, acquireWakeLock is only used from non-gesture contexts
+      // (visibilitychange, page load). iOS may reject this — that's OK, the video
+      // will already be playing if it was started from a user gesture.
+      playNoSleepVideo();
+      return;
+    }
+    if (wakeLockSentinel) {
+      console.log('[WakeLock] skip acquire — already held');
+      return;
+    }
+    console.log('[WakeLock] requesting native lock...');
+    try {
+      wakeLockSentinel = await navigator.wakeLock.request('screen');
+      console.log('[WakeLock] native lock acquired');
+      wakeLockSentinel.addEventListener('release', function() {
+        console.log('[WakeLock] native lock released by browser');
+        wakeLockSentinel = null;
+      });
+    } catch (e) {
+      console.error('[WakeLock] native request denied:', e.name, e.message);
     }
   }
 
@@ -5187,9 +5204,8 @@
         wakeLockSentinel.release();
         wakeLockSentinel = null;
       }
-    } else if (noSleepVideo && !noSleepVideo.paused) {
-      console.log('[WakeLock] stopping silent video fallback');
-      noSleepVideo.pause();
+    } else {
+      stopNoSleepVideo();
     }
   }
 
@@ -5202,6 +5218,8 @@
     localStorage.setItem('et_screen_on', screenOnActive);
     console.log('[WakeLock] toggle:', screenOnActive ? 'ON' : 'OFF');
     if (screenOnActive && running) {
+      // Start video directly from this tap — iOS requires user gesture
+      if (!hasNativeWakeLock) playNoSleepVideo();
       acquireWakeLock();
     } else {
       releaseWakeLock();
@@ -5267,6 +5285,8 @@
         work_type: currentWorkType,
         pomodoro_mode: pomodoroMode, pomodoro_phase: pomodoroPhase
       });
+      // Start video directly from this tap — iOS requires user gesture
+      if (screenOnActive && !hasNativeWakeLock && typeof playNoSleepVideo === 'function') playNoSleepVideo();
       if (typeof acquireWakeLock === 'function') acquireWakeLock();
     }
   });
