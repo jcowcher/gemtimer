@@ -99,6 +99,7 @@ Read `NOTES.md` for full details. The most dangerous ones:
 - **Supabase table** — `timer_history` for sessions, `quotes` for theme quotes
 - **CSP headers** — defined in a `<meta>` tag; update if adding new external domains
 - **i18n** — translation keys in a JS object, `t(key)` function. Add translations to all 6 languages.
+- **Deploy merges** — when merging `dev` to `main`, always use `--no-ff` with a descriptive commit message summarising what changed since the last deploy.
 
 ## Supabase Schema
 
