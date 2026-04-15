@@ -3258,6 +3258,20 @@
     }
   }
 
+  // Append a session to local storage, then to Supabase if signed in, writing
+  // back the _sb_id so future syncs can match local ↔ cloud rows.
+  async function persistNewSession(session) {
+    sessions.push(session);
+    localStorage.setItem('et_sessions', JSON.stringify(sessions));
+    if (currentUser && supabaseClient) {
+      const saved = await saveSessionToSupabase(session);
+      if (saved) {
+        session._sb_id = saved.id;
+        localStorage.setItem('et_sessions', JSON.stringify(sessions));
+      }
+    }
+  }
+
   async function deleteSessionFromSupabase(sbId) {
     if (!currentUser || !supabaseClient || !sbId) return;
     try {
@@ -3548,6 +3562,16 @@
     el.style.display = 'block';
   }
 
+  // Switch the sign-in form into the "enter verification code" step.
+  function showSignInCodeStep() {
+    document.getElementById('signInEmail').disabled = true;
+    document.getElementById('signInPasswordWrap').style.display = 'none';
+    document.getElementById('signInForgotWrap').style.display = 'none';
+    document.getElementById('signInCodeWrap').style.display = 'block';
+    document.getElementById('signInCode').focus();
+    document.getElementById('signInSubmit').textContent = 'VERIFY';
+  }
+
   function openSignIn() {
     if (window.Clerk) {
       resetSignInForm();
@@ -3630,12 +3654,7 @@
               return;
             }
             await signUpAttempt.prepareEmailAddressVerification({ strategy: 'email_code' });
-            document.getElementById('signInEmail').disabled = true;
-            document.getElementById('signInPasswordWrap').style.display = 'none';
-            document.getElementById('signInForgotWrap').style.display = 'none';
-            document.getElementById('signInCodeWrap').style.display = 'block';
-            document.getElementById('signInCode').focus();
-            submitBtn.textContent = 'VERIFY';
+            showSignInCodeStep();
             submitBtn.disabled = false;
             return;
           }
@@ -3675,12 +3694,7 @@
         if (hasEmailCode) {
           const emailFactor = factors.find(f => f.strategy === 'email_code');
           await signInAttempt.prepareFirstFactor({ strategy: 'email_code', emailAddressId: emailFactor.emailAddressId });
-          document.getElementById('signInEmail').disabled = true;
-          document.getElementById('signInPasswordWrap').style.display = 'none';
-          document.getElementById('signInForgotWrap').style.display = 'none';
-          document.getElementById('signInCodeWrap').style.display = 'block';
-          document.getElementById('signInCode').focus();
-          submitBtn.textContent = 'VERIFY';
+          showSignInCodeStep();
           submitBtn.disabled = false;
           return;
         }
@@ -3711,12 +3725,7 @@
     }
     try {
       signInAttempt = await window.Clerk.client.signIn.create({ strategy: 'reset_password_email_code', identifier: email });
-      document.getElementById('signInPasswordWrap').style.display = 'none';
-      document.getElementById('signInForgotWrap').style.display = 'none';
-      document.getElementById('signInCodeWrap').style.display = 'block';
-      document.getElementById('signInCode').focus();
-      document.getElementById('signInEmail').disabled = true;
-      document.getElementById('signInSubmit').textContent = 'VERIFY';
+      showSignInCodeStep();
     } catch (err) {
       showSignInError(err.errors ? err.errors[0].longMessage || err.errors[0].message : 'Could not send reset email.');
     }
@@ -3771,32 +3780,20 @@
       setInterval(tickClock, 1000);
     }
 
-    // "The Why" overlay
-    var whyLink = document.getElementById('landingWhyLink');
-    var whyOverlay = document.getElementById('whyOverlay');
-    var whyClose = document.getElementById('whyOverlayClose');
-    if (whyLink && whyOverlay) {
-      whyLink.addEventListener('click', function() { whyOverlay.classList.add('active'); });
-      whyClose.addEventListener('click', function() { whyOverlay.classList.remove('active'); });
-    }
-
-    // "The How" overlay
-    var howLink = document.getElementById('landingHowLink');
-    var howOverlay = document.getElementById('howOverlay');
-    var howClose = document.getElementById('howOverlayClose');
-    if (howLink && howOverlay) {
-      howLink.addEventListener('click', function() { howOverlay.classList.add('active'); });
-      howClose.addEventListener('click', function() { howOverlay.classList.remove('active'); });
-    }
-
-    // "The What" overlay
-    var whatLink = document.getElementById('landingWhatLink');
-    var whatOverlay = document.getElementById('whatOverlay');
-    var whatClose = document.getElementById('whatOverlayClose');
-    if (whatLink && whatOverlay) {
-      whatLink.addEventListener('click', function() { whatOverlay.classList.add('active'); });
-      whatClose.addEventListener('click', function() { whatOverlay.classList.remove('active'); });
-    }
+    // "The Why/How/What" overlays — identical wire-up, just different IDs.
+    [
+      ['landingWhyLink', 'whyOverlay', 'whyOverlayClose'],
+      ['landingHowLink', 'howOverlay', 'howOverlayClose'],
+      ['landingWhatLink', 'whatOverlay', 'whatOverlayClose']
+    ].forEach(function(ids) {
+      var link = document.getElementById(ids[0]);
+      var overlay = document.getElementById(ids[1]);
+      var close = document.getElementById(ids[2]);
+      if (link && overlay) {
+        link.addEventListener('click', function() { overlay.classList.add('active'); });
+        close.addEventListener('click', function() { overlay.classList.remove('active'); });
+      }
+    });
   })();
 
   // Landing "try-it" interactive timer (self-contained; never touches authenticated timer state)
@@ -5365,16 +5362,7 @@
     const savedType = currentWorkType;
 
     if (savedElapsed >= 5) {
-      const session = { duration: savedElapsed, date: new Date().toISOString(), name: savedName, type: savedType };
-      sessions.push(session);
-      localStorage.setItem('et_sessions', JSON.stringify(sessions));
-      if (currentUser && supabaseClient) {
-        const saved = await saveSessionToSupabase(session);
-        if (saved) {
-          session._sb_id = saved.id;
-          localStorage.setItem('et_sessions', JSON.stringify(sessions));
-        }
-      }
+      await persistNewSession({ duration: savedElapsed, date: new Date().toISOString(), name: savedName, type: savedType });
       renderSessions();
       renderHistory();
     }
@@ -5675,16 +5663,7 @@
 
     if (pomodoroMode) {
       if (pomodoroPhase === 'work' && savedElapsed >= 5) {
-        const session = { duration: savedElapsed, date: new Date().toISOString(), name: savedName, type: savedType };
-        sessions.push(session);
-        localStorage.setItem('et_sessions', JSON.stringify(sessions));
-        if (currentUser && supabaseClient) {
-          const saved = await saveSessionToSupabase(session);
-          if (saved) {
-            session._sb_id = saved.id;
-            localStorage.setItem('et_sessions', JSON.stringify(sessions));
-          }
-        }
+        await persistNewSession({ duration: savedElapsed, date: new Date().toISOString(), name: savedName, type: savedType });
       }
       pomodoroPhase = 'work';
       newResetBtn.style.display = 'none';
@@ -5710,16 +5689,7 @@
     });
 
     if (savedElapsed >= 5) {
-      const session = { duration: savedElapsed, date: new Date().toISOString(), name: savedName, type: savedType };
-      sessions.push(session);
-      localStorage.setItem('et_sessions', JSON.stringify(sessions));
-      if (currentUser && supabaseClient) {
-        const saved = await saveSessionToSupabase(session);
-        if (saved) {
-          session._sb_id = saved.id;
-          localStorage.setItem('et_sessions', JSON.stringify(sessions));
-        }
-      }
+      await persistNewSession({ duration: savedElapsed, date: new Date().toISOString(), name: savedName, type: savedType });
     }
 
     newResetBtn.style.display = 'none';
@@ -6886,17 +6856,7 @@
       submitBtn.disabled = true;
       const name = nameInput.value.trim() || t('deepWork');
       const endDate = new Date(dateInput.value + 'T' + endInput.value + ':00');
-      const session = { name: name, duration: totalSeconds, date: endDate.toISOString(), manual: true, type: addSessionWorkType };
-      sessions.push(session);
-      localStorage.setItem('et_sessions', JSON.stringify(sessions));
-
-      if (currentUser && supabaseClient) {
-        const saved = await saveSessionToSupabase(session);
-        if (saved) {
-          session._sb_id = saved.id;
-          localStorage.setItem('et_sessions', JSON.stringify(sessions));
-        }
-      }
+      await persistNewSession({ name: name, duration: totalSeconds, date: endDate.toISOString(), manual: true, type: addSessionWorkType });
 
       renderSessions();
       renderHistory();
