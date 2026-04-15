@@ -414,7 +414,6 @@
   }
 
   .timer-wrap svg { display: none; }
-  .dot { display: none; }
 
   .time-display {
     position: absolute;
@@ -2415,7 +2414,7 @@
             <button class="work-type-btn active-deep" data-type="deep">Deep Work</button>
             <button class="work-type-btn" data-type="sustaining">Sustaining</button>
           </div>
-          <div class="session-input-wrap landing-try-name-wrap" id="landingTryNameWrap">
+          <div class="session-input-wrap landing-try-name-wrap">
             <input type="text" class="timer-heading-input" id="landingTryName" placeholder="Name your session..." maxlength="60" autocomplete="off">
           </div>
           <div class="timer-wrap landing-try-wrap" id="landingTryWrap">
@@ -2429,7 +2428,7 @@
               </div>
             </div>
           </div>
-          <div class="controls landing-try-controls" id="landingTryControls">
+          <div class="controls landing-try-controls">
             <button class="btn btn-primary landing-try-start" id="landingTryStart">
               <svg id="landingTryStartIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
               <span id="landingTryStartText">Start</span>
@@ -2439,7 +2438,7 @@
               <span>Finish</span>
             </button>
           </div>
-          <div class="landing-try-cta-sub" id="landingTryCtaSub">3 sessions done. Sign up to keep your history.</div>
+          <div class="landing-try-cta-sub">3 sessions done. Sign up to keep your history.</div>
         </div>
       </div>
 
@@ -2560,8 +2559,8 @@
 
     <div class="controls">
       <button class="btn btn-primary" id="startPauseBtn">
-        <svg id="playIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-        <span id="btnText">Start</span>
+        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        <span>Start</span>
       </button>
       <button class="btn btn-secondary" id="resetBtn" style="display:none">
         <svg viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
@@ -2612,7 +2611,7 @@
       </div>
     </div>
 
-    <div class="history-section" id="historySection">
+    <div class="history-section">
       <div class="history-header">
         <div class="week-nav" style="width:100%; justify-content:center;">
           <button class="week-nav-btn" id="weekPrev" title="Previous week">
@@ -2770,8 +2769,6 @@
   const timerFill = document.getElementById('timerFill');
   const startPauseBtn = document.getElementById('startPauseBtn');
   const resetBtn = document.getElementById('resetBtn');
-  const playIcon = document.getElementById('playIcon');
-  const btnText = document.getElementById('btnText');
   const statusLabel = document.getElementById('statusLabel');
   const sessionList = document.getElementById('sessionList');
   const totalTimeEl = document.getElementById('totalTime');
@@ -2911,7 +2908,6 @@
     const currentBtnText = document.querySelector('#startPauseBtn span') ||
       document.querySelector('.btn-primary span');
     if (currentBtnText) {
-      const txt = currentBtnText.textContent;
       if (!running && elapsed === 0) currentBtnText.textContent = t('start');
       else if (!running && elapsed > 0) currentBtnText.textContent = t('resume');
       else if (running) currentBtnText.textContent = t('pause');
