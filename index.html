@@ -1899,6 +1899,7 @@
     margin-bottom: 14px;
   }
   .landing-hero-text h1 em { font-style: normal; color: var(--orange); }
+  .landing-hero-text h1 .hero-line-1 { display: block; margin-bottom: 0.5rem; }
   .landing-hero-text .subtitle {
     font-size: 18px;
     line-height: 1.6;
@@ -1923,104 +1924,120 @@
   .landing-btn-large:hover { background: var(--orange-light); transform: translateY(-1px); }
   .landing-free-note { font-size: 13px; color: var(--gray-500); }
 
-  /* Landing timer preview */
-  .landing-timer-preview {
+  /* Landing interactive try-it timer (reuses real .timer-wrap / .timer-body / .timer-fill / .time-digits / .work-type-toggle / .btn classes) */
+  .landing-try-timer {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding-top: 2.5rem;
+    padding-top: 0;
+    width: 100%;
   }
-  .landing-wt-toggle {
-    display: flex;
-    gap: 0.25rem;
-    margin-top: -20px;
-    margin-bottom: 1rem;
+  .landing-try-timer .landing-try-wt { margin-top: 0; margin-bottom: 0.75rem; }
+  .landing-try-timer .landing-try-name-wrap {
+    margin-bottom: 0;
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+    pointer-events: none;
+    transition: opacity 0.25s ease, max-height 0.25s ease, margin-bottom 0.25s ease;
   }
-  .landing-wt-btn {
-    font-family: inherit;
-    font-size: 0.78rem;
-    font-weight: 500;
-    padding: 0.4rem 1rem;
-    border-radius: 100px;
-    color: var(--gray-500);
-    background: var(--gray-100);
+  .landing-try-timer[data-state="naming"] .landing-try-name-wrap,
+  .landing-try-timer[data-state="running"] .landing-try-name-wrap,
+  .landing-try-timer[data-state="paused"] .landing-try-name-wrap {
+    opacity: 1;
+    max-height: 60px;
+    pointer-events: auto;
+    margin-bottom: 0.75rem;
   }
-  .landing-wt-active { background: var(--orange); color: #fff; }
-  .landing-timer-wrap {
-    position: relative;
-    margin-top: 20px;
+  .landing-try-timer .landing-try-wrap {
     width: 280px;
     height: 280px;
+    margin-top: 14px;
+    margin-bottom: 0;
+    transition: transform 0.25s ease;
   }
-  .landing-stopwatch-btn {
-    position: absolute;
-    top: -26px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 20px;
-    height: 14px;
-    background: repeating-linear-gradient(
-      90deg,
-      var(--gray-300) 0px,
-      var(--gray-300) 2.5px,
-      var(--gray-400) 2.5px,
-      var(--gray-400) 3px
-    );
-    border-radius: 4px 4px 2px 2px;
-    z-index: 3;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  }
-  .landing-stopwatch-btn::after {
-    content: '';
-    position: absolute;
-    bottom: -12px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 12px;
-    height: 12px;
-    background: var(--gray-300);
-    border-radius: 0 0 2px 2px;
-  }
-  .landing-timer-body {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    background: var(--gray-100);
-    box-shadow:
-      0 8px 40px rgba(255,102,0,0.15),
-      0 2px 8px rgba(0,0,0,0.06),
-      inset 0 2px 4px rgba(255,255,255,0.8),
-      inset 0 -1px 2px rgba(0,0,0,0.04);
-    position: relative;
-    overflow: hidden;
-  }
-  .landing-timer-fill {
-    position: absolute;
-    inset: 8px;
-    border-radius: 50%;
-    background: conic-gradient(var(--orange) 0deg, var(--orange) 145deg, var(--gray-200) 145deg);
-  }
-  .landing-timer-fill-inner {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    background: var(--white);
-    transform: scale(0.88);
-  }
-  .landing-time-display {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .landing-time-digits {
+  .landing-try-timer .landing-try-wrap .time-digits {
     font-size: 3rem;
     font-weight: 700;
-    letter-spacing: -0.02em;
     color: var(--black);
-    font-variant-numeric: tabular-nums;
-    line-height: 1;
+    opacity: 1;
+    transition: opacity 0.25s ease, color 0.25s ease, font-size 0.25s ease;
+  }
+  /* Decorative default: static 24:10, 145° ring (handled inline via JS) */
+  .landing-try-timer[data-state="decor"] .landing-try-wrap { cursor: default; }
+  /* Ready (desktop hover / mobile first tap) */
+  .landing-try-timer[data-state="ready"] .landing-try-wrap {
+    cursor: pointer;
+    transform: scale(1.02);
+  }
+  .landing-try-timer[data-state="ready"] .landing-try-wrap .time-digits {
+    color: var(--gray-500);
+    font-size: 1.1rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+  }
+  .landing-try-timer[data-state="ready"].sustaining-ready .landing-try-wrap .time-digits {
+    color: var(--gray-500);
+  }
+  /* CTA state (3+ sessions done) */
+  .landing-try-timer[data-state="cta"] .landing-try-wt { display: none; }
+  .landing-try-timer[data-state="cta"] .landing-try-wrap { cursor: pointer; }
+  .landing-try-timer[data-state="cta"] .landing-try-wrap .time-digits {
+    font-size: 1.1rem;
+    color: var(--gray-500);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+  }
+  /* Controls — hidden until naming/running/paused */
+  .landing-try-timer .landing-try-controls {
+    margin-top: 0;
+    margin-bottom: 0;
+    min-height: 0;
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+    pointer-events: none;
+    transition: opacity 0.25s ease, max-height 0.25s ease, margin-top 0.25s ease;
+  }
+  .landing-try-timer[data-state="naming"] .landing-try-controls,
+  .landing-try-timer[data-state="running"] .landing-try-controls,
+  .landing-try-timer[data-state="paused"] .landing-try-controls {
+    opacity: 1;
+    max-height: 60px;
+    pointer-events: auto;
+    margin-top: 1rem;
+  }
+  .landing-try-timer .landing-try-controls .btn {
+    min-width: 110px;
+    height: 40px;
+    font-size: 0.78rem;
+  }
+  .landing-try-timer .landing-try-finish { display: none; }
+  .landing-try-timer[data-state="running"] .landing-try-finish,
+  .landing-try-timer[data-state="paused"] .landing-try-finish { display: flex; }
+  /* CTA subtitle line (only in cta state) */
+  .landing-try-timer .landing-try-cta-sub {
+    display: none;
+    font-size: 0.85rem;
+    color: var(--gray-700);
+    text-align: center;
+    margin-top: 1.2rem;
+    width: 100%;
+    align-self: center;
+    white-space: nowrap;
+  }
+  .landing-try-timer[data-state="cta"] .landing-try-cta-sub { display: block; }
+
+  /* Dim surrounding landing content while a trial session is actively running/paused */
+  .landing .landing-hero-text,
+  .landing .landing-hero-cta,
+  .landing .landing-modes {
+    transition: opacity 0.25s ease;
+  }
+  .landing.landing-session-active .landing-hero-text,
+  .landing.landing-session-active .landing-hero-cta,
+  .landing.landing-session-active .landing-modes {
+    opacity: 0.35;
   }
 
   /* Landing modes section */
@@ -2129,14 +2146,14 @@
     transition: opacity 0.2s;
   }
   .why-overlay-close:hover { opacity: 0.7; }
-  .landing-modes { padding: 50px 40px 32px; max-width: 1100px; margin: 0 auto; width: 100%; box-sizing: border-box; }
-  .landing-modes-tagline { font-size: 16px; font-weight: 500; color: var(--black); text-align: center; margin-bottom: 10px; position: relative; top: -20px; }
-  .landing-modes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 700px; margin: 0 auto; }
+  .landing-modes { padding: 12px 40px 15px; max-width: 1100px; margin: 0 auto; width: 100%; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; }
+  .landing-modes-tagline { font-size: 16px; font-weight: 500; color: var(--black); text-align: center; margin-bottom: 10px; position: relative; top: 0; }
+  .landing-modes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; max-width: 700px; margin: 0 auto; justify-self: center; }
   .landing-mode-card {
     background: var(--white);
     border: 1px solid var(--gray-200);
     border-radius: 14px;
-    padding: 20px;
+    padding: 20px 20px 10px;
     transition: border-color 0.2s;
   }
   .landing-mode-card:hover { border-color: var(--orange-light); }
@@ -2165,11 +2182,14 @@
     .landing-hero-cta { justify-content: center; order: 3; grid-column: auto; padding-top: 24px; }
 
     /* Timer */
-    .landing-timer-preview { padding-top: 0; }
-    .landing-timer-wrap { width: 202px !important; height: 202px !important; max-width: 202px; max-height: 202px; background: #F5F3F0; border-radius: 50%; padding: 16px; }
-    .landing-time-digits { font-size: 1.8rem; }
-    .landing-wt-toggle { margin-bottom: 16px; }
-    .landing-wt-btn { font-size: 0.7rem; padding: 0.3rem 0.75rem; }
+    .landing-try-timer { padding-top: 0; }
+    .landing-try-timer .landing-try-wrap { width: 202px !important; height: 202px !important; max-width: 202px; max-height: 202px; margin-top: 8px; }
+    .landing-try-timer .landing-try-wrap .time-digits { font-size: 1.8rem; }
+    .landing-try-timer[data-state="ready"] .landing-try-wrap .time-digits { font-size: 1.4rem; }
+    .landing-try-timer[data-state="cta"] .landing-try-wrap .time-digits { font-size: 1.2rem; }
+    .landing-try-timer .landing-try-wt { margin-bottom: 12px; }
+    .landing-try-timer .landing-try-wt .work-type-btn { font-size: 0.7rem; padding: 0.3rem 0.75rem; }
+    .landing-try-timer .landing-try-controls .btn { min-width: 90px; height: 36px; font-size: 0.72rem; }
 
     /* CTA */
     .landing-btn-large { font-size: 15px; padding: 12px 36px; border-radius: 100px; box-shadow: 0 2px 12px rgba(232,97,26,0.25); }
@@ -2387,38 +2407,52 @@
   <div class="landing-inner">
     <section class="landing-hero">
       <div class="landing-hero-text">
-        <h1>The clock runs.<br/>Know where your <em>time</em> goes.</h1>
+        <h1><span class="hero-line-1">The clock runs.</span>Know where your <em>time</em> goes.</h1>
       </div>
 
       <div class="landing-hero-visual">
-        <div class="landing-timer-preview">
-          <div class="landing-wt-toggle">
-            <span class="landing-wt-btn landing-wt-active">Deep Work</span>
-            <span class="landing-wt-btn">Sustaining</span>
+        <div class="landing-try-timer" id="landingTryTimer" data-state="decor">
+          <div class="work-type-toggle landing-try-wt" id="landingTryWt">
+            <button class="work-type-btn active-deep" data-type="deep">Deep Work</button>
+            <button class="work-type-btn" data-type="sustaining">Sustaining</button>
           </div>
-          <div class="landing-timer-wrap">
-            <div class="landing-stopwatch-btn"></div>
-            <div class="landing-timer-body">
-              <div class="landing-timer-fill">
-                <div class="landing-timer-fill-inner"></div>
+          <div class="session-input-wrap landing-try-name-wrap" id="landingTryNameWrap">
+            <input type="text" class="timer-heading-input" id="landingTryName" placeholder="Name your session..." maxlength="60" autocomplete="off">
+          </div>
+          <div class="timer-wrap landing-try-wrap" id="landingTryWrap">
+            <div class="stopwatch-btn"></div>
+            <div class="timer-body" id="landingTryBody">
+              <div class="timer-fill" id="landingTryFill">
+                <div class="timer-fill-inner"></div>
               </div>
-              <div class="landing-time-display">
-                <div class="landing-time-digits">24:10</div>
+              <div class="time-display">
+                <div class="time-digits visible" id="landingTryDisplay">24:10</div>
               </div>
             </div>
           </div>
+          <div class="controls landing-try-controls" id="landingTryControls">
+            <button class="btn btn-primary landing-try-start" id="landingTryStart">
+              <svg id="landingTryStartIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+              <span id="landingTryStartText">Start</span>
+            </button>
+            <button class="btn btn-secondary landing-try-finish" id="landingTryFinish">
+              <svg viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+              <span>Finish</span>
+            </button>
+          </div>
+          <div class="landing-try-cta-sub" id="landingTryCtaSub">3 sessions done. Sign up to keep your history.</div>
         </div>
       </div>
 
       <div class="landing-hero-cta">
-        <button class="landing-btn-large" id="landingCta">Start tracking &mdash; free</button>
+        <button class="landing-btn-large" id="landingCta">Get started</button>
       </div>
     </section>
 
   </div>
 
   <section class="landing-modes">
-    <div class="landing-modes-tagline">Two modes. One clock.</div>
+    <div class="landing-modes-tagline">Two modes. One clock. Zero credit cards.</div>
     <div class="landing-modes-grid">
       <div class="landing-mode-card">
         <h3>Deep Work</h3>
@@ -3802,6 +3836,243 @@
     if (whatLink && whatOverlay) {
       whatLink.addEventListener('click', function() { whatOverlay.classList.add('active'); });
       whatClose.addEventListener('click', function() { whatOverlay.classList.remove('active'); });
+    }
+  })();
+
+  // Landing "try-it" interactive timer (self-contained; never touches authenticated timer state)
+  (function initLandingTryTimer() {
+    var root = document.getElementById('landingTryTimer');
+    if (!root) return;
+    var wrap = document.getElementById('landingTryWrap');
+    var body = document.getElementById('landingTryBody');
+    var fill = document.getElementById('landingTryFill');
+    var display = document.getElementById('landingTryDisplay');
+    var nameInput = document.getElementById('landingTryName');
+    var wtToggle = document.getElementById('landingTryWt');
+    var startBtn = document.getElementById('landingTryStart');
+    var startBtnText = document.getElementById('landingTryStartText');
+    var startBtnIcon = document.getElementById('landingTryStartIcon');
+    var finishBtn = document.getElementById('landingTryFinish');
+
+    var DECOR_DIGITS = '24:10';
+    var DECOR_RING_DEG = 145;
+    var ONE_HOUR = 3600;
+    var FINISH_MIN_SECONDS = 5;
+    var MIN_SESSIONS_FOR_CTA = 3;
+
+    var state = 'decor'; // decor | ready | naming | running | paused | cta
+    var workType = 'deep';
+    var elapsed = 0;
+    var startTime = null;
+    var elapsedBeforePause = 0;
+    var interval = null;
+    var hoverCapable = !(window.matchMedia && window.matchMedia('(hover: none)').matches);
+
+    function getSessionCount() {
+      var n = parseInt(localStorage.getItem('gemtimer_sessions') || '0', 10);
+      return isNaN(n) ? 0 : n;
+    }
+    function incrementSessionCount() {
+      var n = getSessionCount() + 1;
+      localStorage.setItem('gemtimer_sessions', String(n));
+      return n;
+    }
+
+    function ringColor() {
+      return workType === 'sustaining' ? 'var(--gray-900)' : 'var(--orange)';
+    }
+    function setRingFromDegrees(deg) {
+      fill.style.background = deg <= 0
+        ? 'var(--gray-200)'
+        : 'conic-gradient(' + ringColor() + ' ' + deg + 'deg, var(--gray-200) ' + deg + 'deg)';
+    }
+    function setRingFromFraction(frac) {
+      setRingFromDegrees(frac * 360);
+    }
+    function fmt(s) {
+      var h = Math.floor(s / 3600);
+      var m = Math.floor((s % 3600) / 60);
+      var sec = s % 60;
+      if (h > 0) return h + ':' + String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+      return String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+    }
+
+    function applyStartBtnStyle() {
+      startBtn.className = 'btn btn-primary landing-try-start' + (workType === 'sustaining' ? ' sustaining' : '');
+    }
+
+    function renderDecor() {
+      display.textContent = DECOR_DIGITS;
+      setRingFromDegrees(DECOR_RING_DEG);
+      body.classList.remove('running');
+      wrap.classList.remove('active');
+    }
+    function renderReady() {
+      display.textContent = 'Start';
+      setRingFromDegrees(DECOR_RING_DEG);
+      body.classList.remove('running');
+    }
+    function renderNaming() {
+      display.textContent = '00:00';
+      setRingFromFraction(0);
+      body.classList.remove('running');
+      wrap.classList.add('active');
+      startBtnText.textContent = 'Start';
+      startBtnIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+      applyStartBtnStyle();
+    }
+    function renderRunning() {
+      wrap.classList.add('active');
+      body.classList.add('running');
+      startBtnText.textContent = 'Pause';
+      startBtnIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+      applyStartBtnStyle();
+    }
+    function renderPaused() {
+      body.classList.remove('running');
+      wrap.classList.add('active');
+      startBtnText.textContent = 'Resume';
+      startBtnIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+      applyStartBtnStyle();
+    }
+    function renderCta() {
+      display.textContent = 'Get started';
+      setRingFromDegrees(DECOR_RING_DEG);
+      body.classList.remove('running');
+    }
+
+    function setState(next) {
+      state = next;
+      root.dataset.state = next;
+      var landingEl = document.getElementById('landingPage');
+      if (landingEl) {
+        landingEl.classList.toggle('landing-session-active', next === 'running' || next === 'paused');
+      }
+      if (next === 'decor') renderDecor();
+      else if (next === 'ready') renderReady();
+      else if (next === 'naming') renderNaming();
+      else if (next === 'running') renderRunning();
+      else if (next === 'paused') renderPaused();
+      else if (next === 'cta') renderCta();
+    }
+
+    function tick() {
+      elapsed = elapsedBeforePause + Math.floor((Date.now() - startTime) / 1000);
+      if (elapsed > 86400) { stopInterval(); return; }
+      display.textContent = fmt(elapsed);
+      var frac = (elapsed % ONE_HOUR) / ONE_HOUR;
+      setRingFromFraction(frac);
+    }
+    function stopInterval() {
+      if (interval) { clearInterval(interval); interval = null; }
+    }
+    function startRunning() {
+      startTime = Date.now();
+      stopInterval();
+      tick();
+      interval = setInterval(tick, 1000);
+      setState('running');
+    }
+    function pauseRunning() {
+      stopInterval();
+      elapsedBeforePause = elapsed;
+      startTime = null;
+      setState('paused');
+    }
+    function resumeRunning() {
+      startTime = Date.now();
+      stopInterval();
+      tick();
+      interval = setInterval(tick, 1000);
+      setState('running');
+    }
+    function finishRunning() {
+      stopInterval();
+      var finished = elapsed;
+      elapsed = 0;
+      elapsedBeforePause = 0;
+      startTime = null;
+      nameInput.value = '';
+      if (finished >= FINISH_MIN_SECONDS) {
+        var count = incrementSessionCount();
+        if (count >= MIN_SESSIONS_FOR_CTA) { setState('cta'); return; }
+      }
+      setState('decor');
+    }
+
+    // Work type toggle
+    wtToggle.querySelectorAll('.work-type-btn').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var t = btn.dataset.type;
+        if (t !== 'deep' && t !== 'sustaining') return;
+        workType = t;
+        wtToggle.querySelectorAll('.work-type-btn').forEach(function(b) {
+          b.className = 'work-type-btn' + (b.dataset.type === 'deep' && t === 'deep'
+            ? ' active-deep'
+            : (b.dataset.type === 'sustaining' && t === 'sustaining' ? ' active-sustaining' : ''));
+        });
+        root.classList.toggle('sustaining-ready', workType === 'sustaining');
+        // Repaint ring in current state
+        if (state === 'running' || state === 'paused') {
+          var frac = (elapsed % ONE_HOUR) / ONE_HOUR;
+          setRingFromFraction(frac);
+        } else if (state === 'naming') {
+          setRingFromFraction(0);
+        } else {
+          setRingFromDegrees(DECOR_RING_DEG);
+        }
+        if (startBtn) applyStartBtnStyle();
+      });
+    });
+
+    // Timer wrap interactions
+    if (hoverCapable) {
+      wrap.addEventListener('mouseenter', function() {
+        if (state === 'decor') setState('ready');
+      });
+      wrap.addEventListener('mouseleave', function() {
+        if (state === 'ready') setState('decor');
+      });
+    }
+    wrap.addEventListener('click', function() {
+      if (state === 'cta') {
+        if (typeof openSignIn === 'function') openSignIn();
+        return;
+      }
+      if (state === 'decor') {
+        setState('ready');
+        return;
+      }
+      if (state === 'ready') {
+        setState('naming');
+        setTimeout(function() { try { nameInput.focus(); } catch (e) {} }, 260);
+        return;
+      }
+    });
+
+    // Prevent name-input clicks from bubbling to wrap (they're outside wrap anyway but just in case)
+    nameInput.addEventListener('click', function(e) { e.stopPropagation(); });
+
+    // Start / Pause / Resume button
+    startBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      if (state === 'naming') { startRunning(); return; }
+      if (state === 'running') { pauseRunning(); return; }
+      if (state === 'paused') { resumeRunning(); return; }
+    });
+
+    // Finish button
+    finishBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      if (state === 'running' || state === 'paused') finishRunning();
+    });
+
+    // Initial state: CTA if user already hit 3 sessions, else decor
+    if (getSessionCount() >= MIN_SESSIONS_FOR_CTA) {
+      setState('cta');
+    } else {
+      setState('decor');
     }
   })();
 
