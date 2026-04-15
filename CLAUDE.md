@@ -4,11 +4,11 @@ GemTimer — minimalist focus timer and productivity tracker at gemtimer.com.
 
 ## Tech Stack
 
-- **Frontend**: Single-page vanilla HTML/CSS/JS — everything lives in `index.html` (~5,675 lines, ~260KB). No framework, no build step, no package.json.
+- **Frontend**: Single-page vanilla HTML/CSS/JS — everything lives in `index.html` (~6,920 lines, ~310KB). No framework, no build step, no package.json.
 - **Auth**: Clerk.js v5 (loaded from CDN). Custom sign-in form (not Clerk's mounted UI) for password manager compatibility.
 - **Database**: Supabase (PostgreSQL, JS SDK v2.98.0 pinned) — cloud session sync, active timer sync, quotes table. Migrations in `supabase/migrations/`.
 - **Storage**: localStorage-first, cloud sync for logged-in users. Key: `et_sessions`.
-- **Hosting**: Vercel (gemtimer.com). `vercel.json` redirects elementarytimer.com → gemtimer.com.
+- **Hosting**: Vercel (gemtimer.com). `vercel.json` redirects elementarytimer.com → gemtimer.com. Only `main` triggers production deploys — the `dev` branch does **not** build preview deployments. To preview dev work, either merge to `main` or configure Vercel preview branches separately.
 - **Analytics**: Cloudflare Insights.
 - **DNS/Domain**: gemtimer.com (formerly elementarytimer.com).
 
@@ -47,7 +47,7 @@ favicon.png / og-image.png / linkedin-*.png
 google4d949a4962a07105.html  # Search Console verification
 supabase/migrations/ # DB schema + seed data for quotes
 CONTEXT.md           # Project overview (human-written)
-NOTES.md             # 17 non-obvious workarounds (read before touching tricky areas)
+NOTES.md             # Non-obvious workarounds and patterns (read before touching tricky areas)
 .env.local           # Clerk + Supabase keys (gitignored)
 .github/workflows/   # GitHub Pages deploy (backup; primary is Vercel)
 ```
@@ -100,6 +100,26 @@ Read `NOTES.md` for full details. The most dangerous ones:
 - **CSP headers** — defined in a `<meta>` tag; update if adding new external domains
 - **i18n** — translation keys in a JS object, `t(key)` function. Add translations to all 6 languages.
 - **Deploy merges** — when merging `dev` to `main`, always use `--no-ff` with a descriptive commit message summarising what changed since the last deploy.
+
+## Code Hygiene
+
+A 5-pass sequential cleanup ran on `index.html` (commits `a6181da` → `82abe2b` on dev, merged to main via `1eedc4d` and deployed). Each pass was run by a separate agent, in order:
+
+1. **AI slop / comments removal** (`a6181da`) — ~160 unhelpful comment lines removed (generic filler, in-motion narration, leftover debug `console.log`s). Load-bearing "why" comments rewritten concisely.
+2. **Deprecated / legacy / fallback paths** (`8b884f6`) — removed `syncPomoPillColor` no-op stub (+ 4 call sites) and unused `getWeekSessions` helper. Confirmed repo has zero `TODO/FIXME/XXX` markers and no commented-out JS blocks.
+3. **Defensive try/catch cleanup** (`c6a44a1`) — 20 `try` blocks audited, 1 cargo-cult guard removed (the `nameInput.focus()` call on the landing trial timer). All remaining `try/catch` wraps a legitimate throwable surface: Clerk, Supabase, Wake Lock, Web Audio, localStorage, `JSON.parse` of persisted data, iOS noSleep video, quotes race guard, and the `tick()` 24h safety net. When adding new error handling, only wrap calls that can genuinely throw at runtime — don't cargo-cult.
+4. **DRY / deduplication** (`2d6be11`) — three consolidations:
+   - **`persistNewSession(session)`** helper (at the top of the session-save code path) replaces 4 near-identical `sessions.push → localStorage.setItem → await saveSessionToSupabase → _sb_id writeback` blocks. New save paths should call this helper, not reimplement the sequence.
+   - **`showSignInCodeStep()`** helper replaces 3 identical DOM plumbing sequences in the Clerk sign-up / sign-in / forgot-password flows (disable email, hide password + forgot wraps, show code wrap, focus code input, set submit label).
+   - **Landing overlay wiring** — Why/What/How overlay openers collapsed into one `forEach` over `[linkId, overlayId, closeId]` tuples.
+5. **Unused code sweep** (`82abe2b`) — grep-based (no `knip`/`madge` on a single HTML file). Removed `playIcon` / `btnText` / `txt` vars, the `.dot { display: none }` CSS rule, and 4 spare HTML `id=` attributes (`landingTryNameWrap`, `landingTryControls`, `landingTryCtaSub`, `historySection`) whose CSS selectors use class selectors only.
+
+Net: 7128 → 6919 lines (−209). All 9 protected workarounds listed under "Critical Workarounds" and all NOTES.md patterns were preserved.
+
+### Known deferred cleanup
+- **`toDateKey` consolidation** — three hand-rolled `YYYY-MM-DD` builders remain at approximately lines 6110 (heatmap 1y cutoff), 6243 (heatmap week key), and 6833 (Add Session default date). A `toDateKey(d)` helper already exists and is used by `renderSessions` / `renderHistory`. Unifying the stragglers was deferred to avoid forward-reference risk on the startup path — one of them lives inside the protected dedup IIFE, which runs before `toDateKey` is declared. Future pass welcome if you move the helper earlier or accept the startup ordering constraint.
+- **Duplicate `function tick()`** — there are two `tick()` declarations: one inside the `initLandingTryTimer` IIFE (landing trial timer, self-contained) and one at top-level (authenticated timer). They don't collide because they're in separate scopes, but it's easy to mistake one for the other when searching.
+- **Stale `.timer-wrap svg { display: none; }`** — no `<svg>` currently lives inside `.timer-wrap`, but the rule is defensive and harmless. Could be removed in a future targeted pass.
 
 ## Supabase Schema
 
