@@ -3080,7 +3080,6 @@
     if (spBtn) {
       spBtn.classList.toggle('sustaining', type === 'sustaining');
     }
-    syncPomoPillColor();
     if (running || elapsed > 0) syncActiveTimer({ work_type: type });
   });
 
@@ -3454,7 +3453,6 @@
       }
       pomodoroBtn.childNodes[0].textContent = t('exitPomodoro');
       pomodoroBtn.classList.add('active');
-      syncPomoPillColor();
       return;
     }
 
@@ -3468,7 +3466,6 @@
 
     pomodoroBtn.childNodes[0].textContent = t('exitPomodoro');
     pomodoroBtn.classList.add('active');
-    syncPomoPillColor();
 
     var spBtn = document.querySelector('.controls .btn-primary');
     var bText = spBtn ? spBtn.querySelector('span') : null;
@@ -5314,8 +5311,6 @@
   // ── Pomodoro Functions ───────────────────────────────
   const pomodoroBtn = document.getElementById('pomodoroBtn');
 
-  function syncPomoPillColor() { /* no-op: toggle switch uses .active class only */ }
-
   function enterPomodoro() {
     pomodoroMode = true;
     pomodoroPhase = 'work';
@@ -5330,7 +5325,6 @@
 
     pomodoroBtn.childNodes[0].textContent = t('exitPomodoro');
     pomodoroBtn.classList.add('active');
-    syncPomoPillColor();
 
     updateDisplay();
     display.classList.remove('idle');
@@ -5944,17 +5938,6 @@
     date.setHours(0, 0, 0, 0);
     date.setDate(diff);
     return date;
-  }
-
-  function getWeekSessions(offset) {
-    const monday = getMonday(new Date());
-    monday.setDate(monday.getDate() + offset * 7);
-    const sunday = new Date(monday);
-    sunday.setDate(sunday.getDate() + 7);
-    return sessions.filter(s => {
-      const d = new Date(s.date);
-      return d >= monday && d < sunday;
-    });
   }
 
   function getWeekDays(offset) {
