@@ -1297,12 +1297,12 @@
   #deepDiveContent { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
   .dd-overlay-body { max-width: 1100px; margin: 0 auto; flex: 1; overflow: hidden; display: flex; flex-direction: column; width: 100%; box-sizing: border-box; padding: 0 40px; }
   .dd-heatmap-top { flex-shrink: 0; margin-bottom: 8px; }
-  .dd-overlay-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 32px; flex: 1; overflow: hidden; min-height: 0; }
+  .dd-overlay-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 32px; flex: 1; overflow: hidden; min-height: 0; align-content: start; }
   .dd-trend-bottom { flex-shrink: 0; padding-top: 4px; padding-bottom: 16px; }
   .dd-overlay-cell { min-width: 0; overflow: hidden; display: flex; flex-direction: column; }
-  .dd-stats { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
+  .dd-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 0.5rem; }
   .dd-stat-card {
-    flex: 1; min-width: 0; background: var(--gray-50); border: 1px solid var(--gray-100);
+    min-width: 0; background: var(--gray-50); border: 1px solid var(--gray-100);
     border-radius: var(--radius); padding: 0.5rem 0.65rem;
   }
   .dd-stat-label { font-size: 0.6rem; color: var(--gray-500); margin-bottom: 0.15rem; }
@@ -1752,6 +1752,19 @@
   .dd-type-pct {
     font-size: 0.68rem; color: var(--gray-500); min-width: 32px; text-align: right;
   }
+  .dd-type-total {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding-top: 0.35rem; margin-top: 0.35rem;
+    border-top: 1px solid var(--gray-200);
+  }
+  .dd-type-total-label {
+    font-size: 0.68rem; font-weight: 600; color: var(--black);
+    letter-spacing: 0.02em; width: 80px; flex-shrink: 0;
+  }
+  .dd-type-total-dur {
+    font-size: 0.75rem; font-weight: 600; color: var(--black);
+    font-variant-numeric: tabular-nums; margin-left: auto;
+  }
 
   /* Tablet */
   @media (max-width: 1024px) {
@@ -1800,7 +1813,7 @@
     .dd-overlay-body { padding: 0 20px; overflow: visible; flex: none; }
     .dd-overlay-grid { grid-template-columns: 1fr; overflow: visible; flex: none; }
     .dd-overlay-cell { overflow: visible; }
-    .dd-stats { flex-direction: column; }
+    .dd-stats { grid-template-columns: repeat(2, 1fr); }
     .dd-tod-grid { grid-template-columns: 1fr; }
     .dd-heatmap-top { overflow-x: auto; -webkit-overflow-scrolling: touch; }
     .dd-hour-grid { overflow: visible; }
@@ -2658,8 +2671,7 @@
       <div class="dd-header">
         <span class="dd-title">Deep dive</span>
         <div class="dd-range-toggle" id="ddRangeToggle">
-          <button class="dd-range-btn active" data-range="week">Week</button>
-          <button class="dd-range-btn" data-range="7d">7d</button>
+          <button class="dd-range-btn active" data-range="week">This week</button>
           <button class="dd-range-btn" data-range="30d">30d</button>
           <button class="dd-range-btn" data-range="1y">1y</button>
         </div>
@@ -6083,8 +6095,7 @@
       const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diffToMon);
       return sessions.filter(s => new Date(s.date) >= monday);
     }
-    const days = range === '7d' ? 7 : 30;
-    const cutoff = new Date(now.getFullYear(), now.getMonth(), now.getDate() - days + 1);
+    const cutoff = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 29);
     return sessions.filter(s => new Date(s.date) >= cutoff);
   }
 
@@ -6328,11 +6339,16 @@
     const maxTrendSec = Math.max(...trend.map(t => t.secs), 1);
 
     // Row 1 left: stat cards
+    const sessionCount = filtered.length;
+    const activeDays = trend.length;
+
     var r1Left = '';
     r1Left += '<div class="dd-stats">';
     r1Left += '<div class="dd-stat-card"><div class="dd-stat-label">Total Focus</div><div class="dd-stat-value">' + fmtTotal(totalFocusSec) + '</div></div>';
     r1Left += '<div class="dd-stat-card"><div class="dd-stat-label">Daily Avg</div><div class="dd-stat-value">' + fmtTotal(dailyAvgSec) + '</div></div>';
     r1Left += '<div class="dd-stat-card"><div class="dd-stat-label">Best Day</div><div class="dd-stat-value">' + fmtTotal(bestDaySec) + '</div></div>';
+    r1Left += '<div class="dd-stat-card"><div class="dd-stat-label">Sessions</div><div class="dd-stat-value">' + sessionCount + '</div></div>';
+    r1Left += '<div class="dd-stat-card"><div class="dd-stat-label">Active Days</div><div class="dd-stat-value">' + activeDays + '</div></div>';
     r1Left += '<div class="dd-stat-card"><div class="dd-stat-label">Peak Hour</div><div class="dd-stat-value">' + peakLabel + '</div></div>';
     r1Left += '</div>';
     var heatmapHTML = '';
@@ -6359,6 +6375,10 @@
       '<div class="dd-type-bar-wrap"><div class="dd-type-bar sustaining" style="width:' + sustainPct + '%"></div></div>' +
       '<span class="dd-type-dur">' + fmtTotal(sustainTotal) + '</span>' +
       '<span class="dd-type-pct">' + sustainPct + '%</span></div>';
+    r1Right += '<div class="dd-type-total">' +
+      '<span class="dd-type-total-label">Total</span>' +
+      '<span class="dd-type-total-dur">' + fmtTotal(totalFocusSec) + '</span>' +
+      '<span style="min-width:32px"></span></div>';
     r1Right += '</div>';
 
     // Row 2 left: time of day + activity breakdown

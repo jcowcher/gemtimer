@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GemTimer Mobile Mockup — Improved</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --orange: #E8611A;
+    --orange-light: #F28C38;
+    --dark: #2D2D2D;
+    --mid: #666;
+    --light-text: #888;
+    --bg: #FAF8F5;
+    --card-bg: #FFFFFF;
+    --card-border: #E8E4DF;
+    --ring-track: #E8E4DF;
+    --nav-pill-border: #D1CCC6;
+  }
+
+  body {
+    font-family: 'DM Sans', -apple-system, sans-serif;
+    background: #1a1a1a;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  /* ── Phone frame ── */
+  .phone-frame {
+    width: 390px;
+    min-height: 844px;
+    background: var(--bg);
+    border-radius: 44px;
+    overflow: hidden;
+    box-shadow: 0 0 0 3px #333, 0 20px 60px rgba(0,0,0,0.5);
+    position: relative;
+  }
+
+  /* ── Status bar ── */
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 28px 6px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--dark);
+  }
+  .status-bar .icons { display: flex; gap: 5px; align-items: center; }
+  .status-bar .icons span { font-size: 13px; }
+
+  /* ── Browser chrome ── */
+  .browser-bar {
+    margin: 4px 16px 0;
+    background: #E8E4DF;
+    border-radius: 12px;
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: var(--mid);
+    font-weight: 500;
+  }
+
+  /* ── Page content ── */
+  .page {
+    padding: 0 20px;
+  }
+
+  /* ── NAV ── */
+  .nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 0 16px;
+    border-bottom: 1px solid var(--card-border);
+  }
+  .nav-logo {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--dark);
+    letter-spacing: -0.3px;
+    white-space: nowrap;
+  }
+  .nav-logo span { color: var(--orange); }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .nav-link {
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--mid);
+    text-decoration: none;
+    padding: 6px 10px;
+    white-space: nowrap;
+  }
+  .nav-pill {
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 7px 13px;
+    border-radius: 100px;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .nav-pill--outline {
+    border: 1.5px solid var(--nav-pill-border);
+    color: var(--dark);
+    background: transparent;
+  }
+  .nav-pill--filled {
+    background: var(--orange);
+    color: white;
+    border: 1.5px solid var(--orange);
+  }
+
+  /* ── HERO ── */
+  .hero {
+    text-align: center;
+    padding-top: 32px;
+  }
+  .hero h1 {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--dark);
+    line-height: 1.35;
+    letter-spacing: -0.3px;
+  }
+  .hero h1 span { color: var(--orange); }
+
+  /* ── TIMER CLUSTER ── */
+  .timer-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 28px;
+  }
+
+  .mode-toggle {
+    display: flex;
+    background: #EDEBE7;
+    border-radius: 100px;
+    padding: 3px;
+    margin-bottom: 20px;
+  }
+  .mode-toggle button {
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 7px 18px;
+    border-radius: 100px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .mode-toggle .active {
+    background: var(--orange);
+    color: white;
+    box-shadow: 0 1px 4px rgba(232,97,26,0.3);
+  }
+  .mode-toggle .inactive {
+    background: transparent;
+    color: var(--light-text);
+  }
+
+  /* Timer ring — scaled down ~18% from original */
+  .timer-ring-wrap {
+    position: relative;
+    width: 200px;
+    height: 200px;
+  }
+  .timer-ring-wrap svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+  .track { stroke: var(--ring-track); }
+  .progress { stroke: var(--orange); stroke-linecap: round; }
+  .timer-display {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 42px;
+    font-weight: 700;
+    color: var(--dark);
+    letter-spacing: -1px;
+  }
+
+  /* ── CTA ── */
+  .cta-wrap {
+    padding-top: 28px;
+    text-align: center;
+  }
+  .cta-button {
+    display: inline-block;
+    background: var(--orange);
+    color: white;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 14px 40px;
+    border-radius: 100px;
+    border: none;
+    cursor: pointer;
+    letter-spacing: -0.2px;
+    box-shadow: 0 2px 12px rgba(232,97,26,0.25);
+  }
+
+  /* ── MODE CARDS ── */
+  .modes-section {
+    padding-top: 36px;
+    padding-bottom: 40px;
+  }
+  .modes-heading {
+    text-align: center;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--dark);
+    margin-bottom: 16px;
+    letter-spacing: -0.3px;
+  }
+  .modes-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .mode-card {
+    background: var(--card-bg);
+    border: 1.5px solid var(--card-border);
+    border-radius: 14px;
+    padding: 18px 16px;
+  }
+  .mode-card h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 6px;
+  }
+  .mode-card p {
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--mid);
+  }
+
+  /* ── Annotations layer ── */
+  .annotations {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .annotation {
+    position: absolute;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    color: #E8611A;
+    background: rgba(232,97,26,0.08);
+    border: 1px solid rgba(232,97,26,0.25);
+    border-radius: 6px;
+    padding: 3px 8px;
+    white-space: nowrap;
+  }
+  .annotation::before {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 1px;
+    background: rgba(232,97,26,0.35);
+  }
+
+  /* ── Side-by-side layout ── */
+  .layout {
+    display: flex;
+    gap: 40px;
+    align-items: flex-start;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .change-notes {
+    width: 340px;
+    padding-top: 10px;
+  }
+  .change-notes h2 {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 20px;
+    letter-spacing: -0.3px;
+  }
+  .change-item {
+    margin-bottom: 16px;
+    padding-left: 16px;
+    border-left: 2px solid var(--orange);
+  }
+  .change-item h3 {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: #ddd;
+    margin-bottom: 4px;
+  }
+  .change-item p {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: #999;
+    line-height: 1.5;
+  }
+  .change-item code {
+    font-size: 12px;
+    background: rgba(255,255,255,0.08);
+    padding: 1px 5px;
+    border-radius: 4px;
+    color: #ccc;
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- Phone mockup -->
+  <div class="phone-frame">
+    <!-- Status bar -->
+    <div class="status-bar">
+      <span>8:39</span>
+      <div class="icons">
+        <span>●●●●</span>
+        <span>📶</span>
+        <span>🔋</span>
+      </div>
+    </div>
+
+    <!-- Browser bar -->
+    <div class="browser-bar">gemtimer.com</div>
+
+    <!-- Page -->
+    <div class="page">
+
+      <!-- NAV -->
+      <nav class="nav">
+        <div class="nav-logo">Gem<span>Timer</span></div>
+        <div class="nav-links">
+          <a class="nav-link" href="#">The Why</a>
+          <a class="nav-link" href="#">The What</a>
+          <a class="nav-pill nav-pill--outline" href="#">Sign in</a>
+          <a class="nav-pill nav-pill--filled" href="#">Get started</a>
+        </div>
+      </nav>
+
+      <!-- HERO -->
+      <div class="hero">
+        <h1>The clock runs.<br>Know where your <span>time</span> goes.</h1>
+      </div>
+
+      <!-- TIMER -->
+      <div class="timer-section">
+        <div class="mode-toggle">
+          <button class="active">Deep Work</button>
+          <button class="inactive">Sustaining</button>
+        </div>
+
+        <div class="timer-ring-wrap">
+          <svg viewBox="0 0 200 200">
+            <circle class="track" cx="100" cy="100" r="88" fill="none" stroke-width="10"/>
+            <circle class="progress" cx="100" cy="100" r="88" fill="none" stroke-width="10"
+              stroke-dasharray="553" stroke-dashoffset="110"/>
+          </svg>
+          <div class="timer-display">24:10</div>
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <div class="cta-wrap">
+        <button class="cta-button">Start tracking — free</button>
+      </div>
+
+      <!-- MODE CARDS -->
+      <div class="modes-section">
+        <div class="modes-heading">Two modes. One clock.</div>
+        <div class="modes-grid">
+          <div class="mode-card">
+            <h3>Deep Work</h3>
+            <p>Intense, distraction-free focus on cognitively demanding tasks.</p>
+          </div>
+          <div class="mode-card">
+            <h3>Sustaining</h3>
+            <p>Lower-intensity work that keeps things moving — email, admin, planning.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Change notes -->
+  <div class="change-notes">
+    <h2>Changes from current</h2>
+
+    <div class="change-item">
+      <h3>1. Smaller logo</h3>
+      <p>Wordmark shrunk from ~22px to ~17px. Frees horizontal room for nav items to breathe.</p>
+    </div>
+
+    <div class="change-item">
+      <h3>2. Nav pills for auth</h3>
+      <p>"Sign in" is an outlined pill, "Get started" is filled orange. Both are pills per your preference, but visually differentiated so the primary CTA pops.</p>
+    </div>
+
+    <div class="change-item">
+      <h3>3. More vertical air</h3>
+      <p>Added ~32px above hero, ~28px above timer ring, ~28px above CTA, ~36px above mode cards. Everything still fits on one screen but no longer feels stacked.</p>
+    </div>
+
+    <div class="change-item">
+      <h3>4. Timer ring ~18% smaller</h3>
+      <p>Ring width reduced from ~240px to ~200px. Still dominant, still legible, but gives back vertical space for breathing room.</p>
+    </div>
+
+    <div class="change-item">
+      <h3>5. Mode toggle pulled up</h3>
+      <p>20px margin below toggle before ring starts. Feels intentional rather than jammed against the ring.</p>
+    </div>
+
+    <div class="change-item">
+      <h3>6. Tighter card copy</h3>
+      <p>Card descriptions shortened to one sentence each. Scannable at a glance instead of requiring reading.</p>
+    </div>
+
+    <div class="change-item">
+      <h3>7. Orange hierarchy</h3>
+      <p>Three orange elements (nav button, timer ring, CTA) now have clear hierarchy: nav pill is small, ring is ambient, CTA button is the dominant action with a subtle shadow.</p>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

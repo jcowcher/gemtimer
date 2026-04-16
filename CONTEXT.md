@@ -26,13 +26,10 @@ Knowledge workers and students who want a clean, no-nonsense timer to track how 
 - Cross-device timer sync via `active_timer` table (no websockets)
 - Clerk auth with Supabase session sync (localStorage offline fallback)
 - Multi-language support, mobile responsive, streak tracking
+- **Interactive trial timer on landing page** — hover reveals a Start state, click to name and run a real session using Deep Work or Sustaining mode; after 3 completed sessions (tracked in `localStorage.gemtimer_sessions`) the timer converts into a "Get started" CTA that triggers Clerk sign-up. Self-contained state machine that deliberately never touches authenticated timer state.
 
 ## Active work
-- Three-column layout: sessions (left) / timer (center) / history (right), orange header line
-- "By type of work" section in left column shows Deep Work / Sustaining split
-- Cross-device timer sync via `active_timer` table (with tick() 24h safety net)
-- Deep Dive analytics: 4 stat boxes, 1y heatmap, content width constrained to header line
-- Theme picker: Notion-style dropdown with search and tooltip
-- Activity dropdown: filtered by work type, chevron, hover tints
-- Mobile: landing page hides clock and footer, smaller nav buttons and hero text
-- Supabase JS SDK pinned to v2.98.0, Clerk unpinned @5
+- Code hygiene pass completed (see CLAUDE.md "Code Hygiene" for details): 5-sequential-agent cleanup of `index.html` removed ~200 lines of AI slop, dead code, and unreferenced identifiers; introduced `persistNewSession` and `showSignInCodeStep` helpers; all 5 commits merged to `main` and deployed.
+- Deferred cleanup items tracked in CLAUDE.md: `toDateKey` consolidation across 3 hand-rolled `YYYY-MM-DD` builders; duplicate top-level `tick()` name shared between landing trial timer IIFE and authenticated timer.
+- Supabase JS SDK pinned to v2.98.0, Clerk unpinned @5.
+- Vercel deploys from `main` only — `dev` branch does not build preview deployments.

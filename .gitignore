@@ -1,2 +1,9 @@
 .vercel
 .env.local
+JEREMYS-CARVE-OUTS-SPEC.md
+THE-WHAT-DRAFT.md
+.DS_Store
+**/.DS_Store
+*.zip
+image.png
+z. archive/
