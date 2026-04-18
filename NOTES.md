@@ -119,3 +119,11 @@ Nav uses `nav::after` with `border-bottom: 2px solid var(--orange)` inset 40px e
 **Page freeze was corrupted data, not Supabase SDK**
 The page freeze was caused by a session with duration 1,774,493,487 seconds saved to `timer_history` from a cross-device sync bug. `splitSessionByDay` iterated once per day (~8000 iterations), freezing the browser. The Supabase SDK was temporarily replaced with direct fetch during debugging but restored once the real cause was found. The SDK removal was a red herring.
 `400f3d0`
+
+---
+
+**Local dev**
+Server runs at `http://localhost:3001/` (`npx serve -l 3001 .`). Clerk uses production keys which don't work on localhost. To bypass sign-in and view the signed-in app locally, paste in DevTools console: `document.querySelector('.main').style.display='block'`. This reveals the authenticated view below the landing page without Clerk auth.
+
+**CSS grid + flex: 1 row-stretch gotcha**
+When a CSS grid container has `flex: 1` (filling a flex parent), grid rows stretch to fill available height by default (`align-content: stretch`). If rows need to size to their content, add `align-content: start`. This was the root cause of the Deep Dive overlay gap bug — stat cards overflowed their 48.5px cell because the grid distributed height equally across rows instead of sizing to content. Fixed 2026-04-16.

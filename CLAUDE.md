@@ -67,7 +67,7 @@ Auth and cloud sync require the Clerk/Supabase keys in `.env.local` — but thes
 - Deep Work vs. Sustaining work type toggle (tooltips match pill colors)
 - Pomodoro mode (25/5)
 - Session history: add/edit/delete, with daily bar chart
-- Deep Dive analytics: 4 stat boxes (Total Focus, Daily Avg, Best Day, Peak Hour), 1y heatmap (Mon–Sun, bigger squares, renders to current week), hourly focus, activity breakdown, daily trend
+- Deep Dive analytics: 6 stat cards in 2×3 grid (Row 1: Total Focus, Daily Avg, Best Day; Row 2: Sessions, Active Days, Peak Hour), Work Type panel with Total row, time range toggle (This week · 30d · 1y), 1y heatmap (Mon–Sun, bigger squares, renders to current week), hourly focus, activity breakdown, daily trend
 - 36 quote themes with Notion-style dropdown (search, keyboard nav, hover tooltip)
 - Activity dropdown filtered by work type, with chevron and work-type-aware hover tints
 - Clerk auth with Supabase sync (Supabase JS pinned to v2.98.0, Clerk unpinned @5)
@@ -135,3 +135,4 @@ Net: 7128 → 6919 lines (−209). All 9 protected workarounds listed under "Cri
 - Hourly focus map splits sessions across hour boundaries
 - Streak counter peeks at yesterday if today is empty
 - `@media (hover: none)` resets all hover states for touch devices
+- Deep Dive overlay grid: `.dd-overlay-grid` uses `align-content: start` so grid rows size to content instead of stretching. Don't remove this property if you change the grid or add rows — without it, stat cards overflow their cell and a gap appears below the Work Type panel.

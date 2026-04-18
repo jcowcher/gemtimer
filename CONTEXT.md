@@ -30,6 +30,7 @@ Knowledge workers and students who want a clean, no-nonsense timer to track how 
 
 ## Active work
 - Code hygiene pass completed (see CLAUDE.md "Code Hygiene" for details): 5-sequential-agent cleanup of `index.html` removed ~200 lines of AI slop, dead code, and unreferenced identifiers; introduced `persistNewSession` and `showSignInCodeStep` helpers; all 5 commits merged to `main` and deployed.
+- Deep Dive overlay restructured: 2×3 stat card grid (Total Focus, Daily Avg, Best Day / Sessions, Active Days, Peak Hour), dropped 7d toggle (now This week · 30d · 1y), added Work Type Total row, fixed grid cell sizing with `align-content: start`.
 - Deferred cleanup items tracked in CLAUDE.md: `toDateKey` consolidation across 3 hand-rolled `YYYY-MM-DD` builders; duplicate top-level `tick()` name shared between landing trial timer IIFE and authenticated timer.
 - Supabase JS SDK pinned to v2.98.0, Clerk unpinned @5.
 - Vercel deploys from `main` only — `dev` branch does not build preview deployments.
