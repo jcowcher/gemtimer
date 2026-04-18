@@ -2,22 +2,6 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Google Analytics 4 — production hosts only (hostname guard keeps localhost/previews out of data) -->
-<script>
-  (function() {
-    var h = window.location.hostname;
-    if (h !== 'www.gemtimer.com' && h !== 'gemtimer.com') return;
-    var s = document.createElement('script');
-    s.async = true;
-    s.src = 'https://www.googletagmanager.com/gtag/js?id=G-PM8GKBJQ9K';
-    document.head.appendChild(s);
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){ dataLayer.push(arguments); }
-    window.gtag = gtag;
-    gtag('js', new Date());
-    gtag('config', 'G-PM8GKBJQ9K');
-  })();
-</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>GemTimer — The clock runs. Know where your time goes.</title>
 <meta name="description" content="The clock runs. Know where your time goes. Track deep work and sustaining work with GemTimer.">
@@ -26,7 +10,7 @@
 <meta name="keywords" content="focus timer, pomodoro, deep work, productivity timer, visual timer, study timer">
 <meta name="author" content="GemTimer">
 <meta name="theme-color" content="#FF6600">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' cdn.jsdelivr.net *.clerk.accounts.dev *.clerk.com clerk.gemtimer.com accounts.gemtimer.com *.cloudflareinsights.com challenges.cloudflare.com www.googletagmanager.com; style-src 'self' 'unsafe-inline' fonts.googleapis.com accounts.gemtimer.com *.clerk.accounts.dev; font-src fonts.gstatic.com accounts.gemtimer.com *.clerk.accounts.dev; connect-src mrphkxragldfngrkkuqs.supabase.co *.clerk.accounts.dev *.clerk.dev *.clerk.com clerk.gemtimer.com accounts.gemtimer.com www.google-analytics.com; img-src 'self' data: img.clerk.com *.clerk.com accounts.gemtimer.com *.clerk.accounts.dev www.google-analytics.com; worker-src 'self' blob:; frame-src challenges.cloudflare.com accounts.gemtimer.com *.clerk.accounts.dev;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' cdn.jsdelivr.net *.clerk.accounts.dev *.clerk.com clerk.gemtimer.com accounts.gemtimer.com *.cloudflareinsights.com challenges.cloudflare.com; style-src 'self' 'unsafe-inline' fonts.googleapis.com accounts.gemtimer.com *.clerk.accounts.dev; font-src fonts.gstatic.com accounts.gemtimer.com *.clerk.accounts.dev; connect-src mrphkxragldfngrkkuqs.supabase.co *.clerk.accounts.dev *.clerk.dev *.clerk.com clerk.gemtimer.com accounts.gemtimer.com; img-src 'self' data: img.clerk.com *.clerk.com accounts.gemtimer.com *.clerk.accounts.dev; worker-src 'self' blob:; frame-src challenges.cloudflare.com accounts.gemtimer.com *.clerk.accounts.dev;">
 
 <!-- Open Graph -->
 <meta property="og:type" content="website">
