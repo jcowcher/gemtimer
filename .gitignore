@@ -7,3 +7,4 @@ THE-WHAT-DRAFT.md
 *.zip
 image.png
 z. archive/
+.env*.local

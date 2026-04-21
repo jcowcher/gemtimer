@@ -3194,10 +3194,15 @@
         return;
       }
 
-      const cloudSessions = (data || []).map(row => ({
-        _sb_id: row.id, duration: row.duration, date: row.date,
-        name: row.name || 'Deep Work', manual: row.manual || false, type: row.type || 'deep'
-      }));
+      const cloudSessions = (data || []).map(row => {
+        if (row.name == null) throw new Error('timer_history.name missing for row=' + row.id);
+        if (row.type == null) throw new Error('timer_history.type missing for row=' + row.id);
+        if (row.manual == null) throw new Error('timer_history.manual missing for row=' + row.id);
+        return {
+          _sb_id: row.id, duration: row.duration, date: row.date,
+          name: row.name, manual: row.manual, type: row.type
+        };
+      });
       const localOnly = localSessions.filter(s => !s._sb_id);
 
       sessions = [...cloudSessions, ...localOnly];
@@ -3373,14 +3378,15 @@
       if (res.error) throw res.error;
       var data = res.data;
       if (!data) return;
+      if (data.accumulated == null) throw new Error('active_timer.accumulated missing for user=' + currentUser.id);
 
       var currentElapsed;
       if (data.is_running && data.started_at) {
         var startMs = new Date(data.started_at).getTime();
-        if (isNaN(startMs)) { currentElapsed = data.accumulated || 0; }
-        else { currentElapsed = (data.accumulated || 0) + Math.floor((Date.now() - startMs) / 1000); }
+        if (isNaN(startMs)) { currentElapsed = data.accumulated; }
+        else { currentElapsed = data.accumulated + Math.floor((Date.now() - startMs) / 1000); }
       } else {
-        currentElapsed = data.accumulated || 0;
+        currentElapsed = data.accumulated;
       }
       if (isNaN(currentElapsed) || currentElapsed < 0) currentElapsed = 0;
       if (currentElapsed > 86400) {
@@ -3400,10 +3406,12 @@
   }
 
   function resumeNormalFromSync(data, currentElapsed) {
+    if (data.work_type == null) throw new Error('active_timer.work_type missing for user=' + currentUser.id);
+    if (data.activity_name == null) throw new Error('active_timer.activity_name missing for user=' + currentUser.id);
     elapsed = currentElapsed;
     elapsedBeforePause = currentElapsed;
-    currentWorkType = data.work_type || 'deep';
-    sessionInput.value = data.activity_name || '';
+    currentWorkType = data.work_type;
+    sessionInput.value = data.activity_name;
     completedLaps = Math.floor(elapsed / ONE_HOUR);
     chime60Played = elapsed >= 3600;
 
@@ -3448,14 +3456,18 @@
   }
 
   function resumePomodoroFromSync(data, currentElapsed) {
+    if (data.work_type == null) throw new Error('active_timer.work_type missing for user=' + currentUser.id);
+    if (data.activity_name == null) throw new Error('active_timer.activity_name missing for user=' + currentUser.id);
+    if (data.pomodoro_phase == null) throw new Error('active_timer.pomodoro_phase missing for user=' + currentUser.id);
+
     var target = (data.pomodoro_phase === 'break') ? POMO_BREAK : POMO_WORK;
 
     if (currentElapsed >= target) {
       if (data.pomodoro_phase !== 'break') {
         pomodoroMode = true;
         pomodoroPhase = 'work';
-        currentWorkType = data.work_type || 'deep';
-        sessionInput.value = data.activity_name || '';
+        currentWorkType = data.work_type;
+        sessionInput.value = data.activity_name;
         elapsed = target;
         elapsedBeforePause = target;
         running = true;
@@ -3479,9 +3491,9 @@
     }
 
     pomodoroMode = true;
-    pomodoroPhase = data.pomodoro_phase || 'work';
-    currentWorkType = data.work_type || 'deep';
-    sessionInput.value = data.activity_name || '';
+    pomodoroPhase = data.pomodoro_phase;
+    currentWorkType = data.work_type;
+    sessionInput.value = data.activity_name;
     elapsed = currentElapsed;
     elapsedBeforePause = currentElapsed;
     completedLaps = 0;

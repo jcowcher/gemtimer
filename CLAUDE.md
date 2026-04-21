@@ -101,6 +101,12 @@ Read `NOTES.md` for full details. The most dangerous ones:
 - **i18n** — translation keys in a JS object, `t(key)` function. Add translations to all 6 languages.
 - **Deploy merges** — when merging `dev` to `main`, always use `--no-ff` with a descriptive commit message summarising what changed since the last deploy.
 
+## Code Rules
+
+1. **No silent fallbacks on Supabase session data.** If a field from a `timer_history` / `active_timer` / `hidden_activities` / `quotes` / `feedback` row is missing, throw with context — never default to `0`, `''`, `false`, or a placeholder string. Defaults mask schema drift and corrupt analytics. (Exempt: `data || []` on the full query result when the response itself can legitimately be null, and the protected NaN-guard / 24h-cap workarounds in `NOTES.md`.)
+2. **No stray `console.log` in shipped code.** Every surviving `console.log` must have a comment on the line above explaining why it's intentional (e.g. Easter egg, debug hook exposed to users). `console.error` / `console.warn` for legitimate error reporting are fine.
+3. **No new `fetch(` or `supabaseClient.from(...)` call without a justifying comment.** Add a one-line comment at the call site explaining what the call does and why. Existing calls pre-dating this rule are grandfathered.
+
 ## Code Hygiene
 
 A 5-pass sequential cleanup ran on `index.html` (commits `a6181da` → `82abe2b` on dev, merged to main via `1eedc4d` and deployed). Each pass was run by a separate agent, in order:
