@@ -5541,6 +5541,9 @@
 
   async function acquireWakeLock() {
     if (!screenOnActive || !running) return;
+    // Clear prior errors so the debug badge shows only errors from the current acquire attempt.
+    lastVideoError = '—';
+    lastNativeError = '—';
     // Always run the silent video alongside the native API. Non-gesture contexts (visibilitychange, load)
     // may have their .play() rejected by iOS, but a video already started from an earlier gesture stays playing.
     playNoSleepVideo();
