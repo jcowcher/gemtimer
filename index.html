@@ -5498,7 +5498,8 @@
   var screenOnActive = localStorage.getItem('et_screen_on') === 'true';
   var hasNativeWakeLock = 'wakeLock' in navigator;
   var noSleepVideo = null;
-  var lastWakeLockError = '—';
+  var lastVideoError = '—';
+  var lastNativeError = '—';
 
   // Always create the silent video — used as a belt-and-suspenders fallback even when navigator.wakeLock exists,
   // because on iPad Chrome the native request can resolve but not actually inhibit screen sleep.
@@ -5545,7 +5546,7 @@
     try {
       var playPromise = noSleepVideo.play();
       if (playPromise) playPromise.catch(function(e) {
-        lastWakeLockError = e.name + ': ' + e.message;
+        lastVideoError = e.name + ': ' + e.message;
         console.error('[WakeLock] silent video play denied:', e.name, e.message);
       });
     } catch (e) {
@@ -5567,7 +5568,7 @@
       wakeLockSentinel = await navigator.wakeLock.request('screen');
       wakeLockSentinel.addEventListener('release', function() { wakeLockSentinel = null; });
     } catch (e) {
-      lastWakeLockError = e.name + ': ' + e.message;
+      lastNativeError = e.name + ': ' + e.message;
       console.error('[WakeLock] native request denied:', e.name, e.message);
     }
   }
@@ -5616,7 +5617,7 @@
     badge.style.padding = '6px 8px';
     badge.style.borderRadius = '4px';
     badge.style.pointerEvents = 'none';
-    badge.style.whiteSpace = 'pre';
+    badge.style.whiteSpace = 'pre-wrap';
     badge.style.maxWidth = '240px';
     badge.style.wordBreak = 'break-word';
     badge.style.display = 'none';
@@ -5631,7 +5632,8 @@
         'sentinel: ' + (wakeLockSentinel !== null ? 'held' : 'null') + '\n' +
         'video: ' + videoState + '\n' +
         't: ' + t + '\n' +
-        'err: ' + lastWakeLockError;
+        'videoErr: ' + lastVideoError + '\n' +
+        'nativeErr: ' + lastNativeError;
     }, 1000);
   }
   initDebugBadge();
