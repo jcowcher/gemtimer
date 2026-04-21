@@ -5499,42 +5499,42 @@
   var hasNativeWakeLock = 'wakeLock' in navigator;
   var noSleepVideo = null;
 
-  if (!hasNativeWakeLock) {
-    noSleepVideo = document.createElement('video');
-    noSleepVideo.setAttribute('playsinline', '');
-    noSleepVideo.setAttribute('muted', '');
-    noSleepVideo.muted = true;
-    noSleepVideo.loop = true;
-    noSleepVideo.style.position = 'fixed';
-    noSleepVideo.style.top = '-1px';
-    noSleepVideo.style.left = '-1px';
-    noSleepVideo.style.width = '1px';
-    noSleepVideo.style.height = '1px';
-    noSleepVideo.style.opacity = '0.01';
-    // Minimal silent MP4 (~1KB) — plays as a short silent loop to keep iOS from sleeping.
-    var silentMp4 = 'data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAA' +
-      'OhtZGF0AAACrgYF//+q3EXpvebZSLeWLNgg2SPu73gyNjQgLSBjb3JlIDE1NyByMjkzNSBhOTRhYTcyIC0gSC4' +
-      'yNjQvTVBFRy00IEFWQyBjb2RlYyAtIENvcHlsZWZ0IDIwMDMtMjAxOCAtIGh0dHA6Ly93d3cudmlkZW9sYW4ub' +
-      '3JnL3gyNjQuaHRtbCAtIG9wdGlvbnM6IGNhYmFjPTEgcmVmPTMgZGVibG9jaz0xOjA6MCBhbmFseXNlPTB4MDo' +
-      'weDAgbWU9aGV4IHN1Ym1lPTcgcHN5PTEgcHN5X3JkPTEuMDA6MC4wMCBtaXhlZF9yZWY9MSBtZV9yYW5nZT0xN' +
-      'iBjaHJvbWFfbWU9MSB0cmVsbGlzPTEgOHg4ZGN0PTEgY3FtPTAgZGVhZHpvbmU9MjEsMTEgZmFzdF9wc2tpcD0' +
-      'xIGNocm9tYV9xcF9vZmZzZXQ9LTIgdGhyZWFkcz0xIGxvb2thaGVhZF90aHJlYWRzPTEgc2xpY2VkX3RocmVhZ' +
-      'HM9MCBucj0wIGRlY2ltYXRlPTEgaW50ZXJsYWNlZD0wIGJsdXJheV9jb21wYXQ9MCBjb25zdHJhaW5lZF9pbnRyY' +
-      'T0wIGJmcmFtZXM9MyBiX3B5cmFtaWQ9MiBiX2FkYXB0PTEgYl9iaWFzPTAgZGlyZWN0PTEgd2VpZ2h0Yj0xIG9' +
-      'wZW5fZ29wPTAgd2VpZ2h0cD0yIGtleWludD0yNTAgc2NlbmVjdXQ9NDAgaW50cmFfcmVmcmVzaD0wIHJjX2xvb' +
-      '2thaGVhZD00MCByYz1jcmYgbWJ0cmVlPTEgY3JmPTIzLjAgcWNvbXA9MC42MCBxcG1pbj0wIHFwbWF4PTY5IHF' +
-      'wc3RlcD00IGlwX3JhdGlvPTEuNDAgYXE9MToxLjAwAIAAAAARZYiEAD//8m+P5OXfBeLGOfKE3AAAADABAAEAAAB' +
-      'AAg8IYMORhL/8ArAbAAAAAwMAEAAAAwAAHidQAAAADACIiaIAAAAKUGaJSf/AAJYAAABBAAAAwAADAAAD3AAAABBAR' +
-      'UAAAAwAAHieAAAARABFRAAAAwAAB4nkAAAADwAAAAMAAAAAnAAAAAwAAAABgABAAAAwAAAAAoAAAAMAAAAAnAAAA' +
-      'AAATAAAADAAAAAHAAABAAAEEAAAADAAAB4ngAAAEUAAAADAAAB4ngAAFcAAAAMAAAbkcAAAAvhtb292AAAAbG12aGQA' +
-      'AAAAAAAAAAAAAAAAAAD6AAAB9AABAAABAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAQA' +
-      'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIDAAAKENHRAAKAAAB0cmFrAAAAXHRraGQAAAADAAAAAAAAAAAA' +
-      'AAAAAQAAAAAAB9AAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAAAAeJA' +
-      'AAAAAAJZWRHAHQAAABAZ2xoYgAAAAATd2lkZQAAAABtZGlyYXBwbAAAACRhcHBsAgAAABZyZHJmAAAAAE5yZWYg' +
-      'AAAAJm1kYXQAAAASd2lkZQAAAABtZGlyYXBwbA==';
-    noSleepVideo.src = silentMp4;
-    document.body.appendChild(noSleepVideo);
-  }
+  // Always create the silent video — used as a belt-and-suspenders fallback even when navigator.wakeLock exists,
+  // because on iPad Chrome the native request can resolve but not actually inhibit screen sleep.
+  noSleepVideo = document.createElement('video');
+  noSleepVideo.setAttribute('playsinline', '');
+  noSleepVideo.setAttribute('muted', '');
+  noSleepVideo.muted = true;
+  noSleepVideo.loop = true;
+  noSleepVideo.style.position = 'fixed';
+  noSleepVideo.style.top = '0';
+  noSleepVideo.style.left = '0';
+  noSleepVideo.style.width = '1px';
+  noSleepVideo.style.height = '1px';
+  noSleepVideo.style.opacity = '0.01';
+  // Minimal silent MP4 (~1KB) — plays as a short silent loop to keep iOS from sleeping.
+  var silentMp4 = 'data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAA' +
+    'OhtZGF0AAACrgYF//+q3EXpvebZSLeWLNgg2SPu73gyNjQgLSBjb3JlIDE1NyByMjkzNSBhOTRhYTcyIC0gSC4' +
+    'yNjQvTVBFRy00IEFWQyBjb2RlYyAtIENvcHlsZWZ0IDIwMDMtMjAxOCAtIGh0dHA6Ly93d3cudmlkZW9sYW4ub' +
+    '3JnL3gyNjQuaHRtbCAtIG9wdGlvbnM6IGNhYmFjPTEgcmVmPTMgZGVibG9jaz0xOjA6MCBhbmFseXNlPTB4MDo' +
+    'weDAgbWU9aGV4IHN1Ym1lPTcgcHN5PTEgcHN5X3JkPTEuMDA6MC4wMCBtaXhlZF9yZWY9MSBtZV9yYW5nZT0xN' +
+    'iBjaHJvbWFfbWU9MSB0cmVsbGlzPTEgOHg4ZGN0PTEgY3FtPTAgZGVhZHpvbmU9MjEsMTEgZmFzdF9wc2tpcD0' +
+    'xIGNocm9tYV9xcF9vZmZzZXQ9LTIgdGhyZWFkcz0xIGxvb2thaGVhZF90aHJlYWRzPTEgc2xpY2VkX3RocmVhZ' +
+    'HM9MCBucj0wIGRlY2ltYXRlPTEgaW50ZXJsYWNlZD0wIGJsdXJheV9jb21wYXQ9MCBjb25zdHJhaW5lZF9pbnRyY' +
+    'T0wIGJmcmFtZXM9MyBiX3B5cmFtaWQ9MiBiX2FkYXB0PTEgYl9iaWFzPTAgZGlyZWN0PTEgd2VpZ2h0Yj0xIG9' +
+    'wZW5fZ29wPTAgd2VpZ2h0cD0yIGtleWludD0yNTAgc2NlbmVjdXQ9NDAgaW50cmFfcmVmcmVzaD0wIHJjX2xvb' +
+    '2thaGVhZD00MCByYz1jcmYgbWJ0cmVlPTEgY3JmPTIzLjAgcWNvbXA9MC42MCBxcG1pbj0wIHFwbWF4PTY5IHF' +
+    'wc3RlcD00IGlwX3JhdGlvPTEuNDAgYXE9MToxLjAwAIAAAAARZYiEAD//8m+P5OXfBeLGOfKE3AAAADABAAEAAAB' +
+    'AAg8IYMORhL/8ArAbAAAAAwMAEAAAAwAAHidQAAAADACIiaIAAAAKUGaJSf/AAJYAAABBAAAAwAADAAAD3AAAABBAR' +
+    'UAAAAwAAHieAAAARABFRAAAAwAAB4nkAAAADwAAAAMAAAAAnAAAAAwAAAABgABAAAAwAAAAAoAAAAMAAAAAnAAAA' +
+    'AAATAAAADAAAAAHAAABAAAEEAAAADAAAB4ngAAAEUAAAADAAAB4ngAAFcAAAAMAAAbkcAAAAvhtb292AAAAbG12aGQA' +
+    'AAAAAAAAAAAAAAAAAAD6AAAB9AABAAABAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAQA' +
+    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIDAAAKENHRAAKAAAB0cmFrAAAAXHRraGQAAAADAAAAAAAAAAAA' +
+    'AAAAAQAAAAAAB9AAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAAAAeJA' +
+    'AAAAAAJZWRHAHQAAABAZ2xoYgAAAAATd2lkZQAAAABtZGlyYXBwbAAAACRhcHBsAgAAABZyZHJmAAAAAE5yZWYg' +
+    'AAAAJm1kYXQAAAASd2lkZQAAAABtZGlyYXBwbA==';
+  noSleepVideo.src = silentMp4;
+  document.body.appendChild(noSleepVideo);
 
   if (screenOnActive) screenOnBtn.classList.add('active');
 
@@ -5557,12 +5557,10 @@
 
   async function acquireWakeLock() {
     if (!screenOnActive || !running) return;
-    if (!hasNativeWakeLock) {
-      // Non-gesture contexts (visibilitychange, load) — iOS may reject, but the video started from the gesture is still playing.
-      playNoSleepVideo();
-      return;
-    }
-    if (wakeLockSentinel) return;
+    // Always run the silent video alongside the native API. Non-gesture contexts (visibilitychange, load)
+    // may have their .play() rejected by iOS, but a video already started from an earlier gesture stays playing.
+    playNoSleepVideo();
+    if (!hasNativeWakeLock || wakeLockSentinel) return;
     try {
       wakeLockSentinel = await navigator.wakeLock.request('screen');
       wakeLockSentinel.addEventListener('release', function() { wakeLockSentinel = null; });
@@ -5572,14 +5570,11 @@
   }
 
   function releaseWakeLock() {
-    if (hasNativeWakeLock) {
-      if (wakeLockSentinel) {
-        wakeLockSentinel.release();
-        wakeLockSentinel = null;
-      }
-    } else {
-      stopNoSleepVideo();
+    if (hasNativeWakeLock && wakeLockSentinel) {
+      wakeLockSentinel.release();
+      wakeLockSentinel = null;
     }
+    stopNoSleepVideo();
   }
 
   // Re-acquire if toggle is on and a running timer was restored from cross-device sync.
@@ -5591,7 +5586,7 @@
     localStorage.setItem('et_screen_on', screenOnActive);
     if (screenOnActive && running) {
       // iOS requires user gesture — start video directly in this tap handler.
-      if (!hasNativeWakeLock) playNoSleepVideo();
+      playNoSleepVideo();
       acquireWakeLock();
     } else {
       releaseWakeLock();
@@ -5654,7 +5649,7 @@
         pomodoro_mode: pomodoroMode, pomodoro_phase: pomodoroPhase
       });
       // iOS requires the user gesture — start the silent video in this click handler directly.
-      if (screenOnActive && !hasNativeWakeLock && typeof playNoSleepVideo === 'function') playNoSleepVideo();
+      if (screenOnActive && typeof playNoSleepVideo === 'function') playNoSleepVideo();
       if (typeof acquireWakeLock === 'function') acquireWakeLock();
       // Rotate carve out on new session start only (not on resume from pause).
       if (elapsedBeforePause === 0 && typeof rotateCarveout === 'function') rotateCarveout();
