@@ -127,3 +127,25 @@ Server runs at `http://localhost:3001/` (`npx serve -l 3001 .`). Clerk uses prod
 
 **CSS grid + flex: 1 row-stretch gotcha**
 When a CSS grid container has `flex: 1` (filling a flex parent), grid rows stretch to fill available height by default (`align-content: stretch`). If rows need to size to their content, add `align-content: start`. This was the root cause of the Deep Dive overlay gap bug — stat cards overflowed their 48.5px cell because the grid distributed height equally across rows instead of sizing to content. Fixed 2026-04-16.
+
+**iPad Chrome wake-lock: dual-path fix with retry (2026-04-21)**
+Screen slept during active timer on iPad Chrome despite Keep Screen On being lit. Two separate root causes.
+
+1. The silent-video fallback was gated on `!hasNativeWakeLock`, so it never ran on iPad Chrome — which exposes `navigator.wakeLock` (so `hasNativeWakeLock` is `true`) but grants it unreliably. Native request intermittently fails with no fallback coverage.
+2. iPad Chrome's WKWebView rejects `navigator.wakeLock.request('screen')` with `NotAllowedError` on the first attempt under some conditions, but grants it on an immediate retry. Whatever heuristic underlies the rejection flips quickly.
+
+*Dead end:* Swapping the inline `data:video/mp4;base64` URL for a real `/silent.mp4` file (served by Vercel with correct `Content-Type: video/mp4`, verified via curl) did **not** fix the video fallback on iPad Chrome — `.play()` still rejects with `NotSupportedError` regardless of whether the source is a data URL or a real file. iPad Chrome categorically refuses muted inline video at the codec/container level for wake-lock purposes. The video fallback is effectively dead on iPad Chrome; it only helps on older iOS / non-WKWebView browsers that lack `navigator.wakeLock` entirely.
+
+*Fixes shipped:*
+- Always create the silent video element (removed `if (!hasNativeWakeLock)` gate around video creation).
+- Moved video inside the viewport (`top:0; left:0` — previously `top:-1px; left:-1px` placed the 1×1 element wholly outside the viewport; WebKit may skip rendering off-viewport elements which could disqualify the video from keeping the screen awake).
+- Call `playNoSleepVideo()` in parallel with native Wake Lock on every acquire (not only when `!hasNativeWakeLock`).
+- Call `stopNoSleepVideo()` **unconditionally** on release. Without this, on devices where the native API exists, the video starts on timer start but never stops on pause/reset because the old `if (hasNativeWakeLock) { ... } else { stopNoSleepVideo() }` branching skipped the video stop path.
+- Added single 200ms retry for `navigator.wakeLock.request('screen')` on `NotAllowedError` specifically. Other error types fall straight through to the existing `console.error` path.
+- Kept `/silent.mp4` and the video fallback for older iOS / non-WKWebView browsers.
+
+*Diagnostic approach:* Temporary on-screen debug badge (fixed bottom-right, monospace) showing `wakeLock` support, `sentinel: held/null`, `video: playing/paused`, `currentTime`, and captured `videoErr` / `nativeErr` with full error `name: message`. Essential because iPad Chrome doesn't surface to Safari Web Inspector — third-party iOS browsers are opaque to remote debugging. The badge was removed in the final commit (`dbe8adc`) once the two failure modes were understood.
+
+*Long-term:* Wake Lock reliability on iPad browsers is not fully fixable from the web platform — Apple's WKWebView restrictions on third-party browsers cap what we can do. Native iOS app is the only robust long-term answer.
+
+`ac0785e` (fallback fix), `9b7ffbc` → `994ccbd` (debug badge iterations), `433757c` (silent.mp4 file), `dbe8adc` (retry + cleanup).
