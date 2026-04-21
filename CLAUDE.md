@@ -41,6 +41,7 @@ GemTimer — minimalist focus timer and productivity tracker at gemtimer.com.
 ```
 index.html           # The entire app (HTML + CSS + JS)
 privacy.html         # Privacy policy
+silent.mp4           # 1.3KB silent video for NoSleep fallback (must be a real file — iPad Chrome rejects data: URLs for <video>)
 vercel.json          # Domain redirects
 robots.txt / sitemap.xml
 favicon.png / og-image.png / linkedin-*.png
@@ -87,6 +88,7 @@ Read `NOTES.md` for full details. The most dangerous ones:
 7. **Sort comparator NaN guard** — `.sort()` comparators must always return a valid number. Invalid date comparisons produce NaN, causing infinite loops in some browsers (especially Safari/WebKit). Use `|| 0` fallback.
 8. **`tick()` 24h safety net** — if `elapsed > 86400`, timer is killed immediately. Prevents corrupted sync data from saving as a session.
 9. **`splitSessionByDay` duration cap** — caps at 86400s to prevent the while loop from iterating thousands of times on corrupted data.
+10. **Wake Lock dual-path + retry** — native `navigator.wakeLock` API and a silent muted video run in parallel, not either/or. iPad Chrome (WKWebView) requires the retry-on-`NotAllowedError` pattern in `acquireWakeLock()` because the first `request('screen')` call often rejects and the second succeeds. `/silent.mp4` must stay as a **real file** in the repo root — iPad Chrome rejects `<video>` with `data:` URLs via `NotSupportedError`. `stopNoSleepVideo()` is called unconditionally on release, not just on the non-native branch. See NOTES.md 2026-04-21 entry for the full debugging trail.
 
 ## Conventions
 
