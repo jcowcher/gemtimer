@@ -95,6 +95,21 @@ Requires `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in `.env.local` (service
 
 **Rule going forward:** any new feature with real blast radius (external services, affiliate links, payment flows, auth changes, anything that could take the site down) must be wrapped in a flag before shipping. Core timer functionality is exempt — if that breaks, revert the commit.
 
+## Localhost Breaker Fixtures
+
+Console-only helpers for layout QA on `localhost:3001`, silently inert on preseason and production (gated by `location.hostname` check at the bottom of the main script in `index.html`).
+
+- `seedBreakers()` — writes ~15 synthetic sessions to `localStorage.et_sessions` covering: long activity names (truncation), 10 tiny sessions on one day (list density), a 12h marathon and a 1m nano (time formatting edges), older days with gaps (history bars + heatmap).
+- `clearBreakers()` — removes only sessions tagged `_fixture: 'breaker'`; real sessions you typed yourself are preserved.
+
+Each fixture row is tagged `_fixture: 'breaker'`. `migrateLocalToSupabase` strips that tag before any cloud push, so fixtures **cannot** leak into Supabase if you seed-then-sign-in on localhost.
+
+No UI surface. Invoke from DevTools Console: `seedBreakers()` → reload → layout stressed; `clearBreakers()` → reload → back to clean.
+
+## Environments notes
+
+- **Clerk Development instance** is parked, not deleted. It exists at frontend API `rational-marten-33.clerk.accounts.dev` from pre-session setup. The Hobby plan only exposes application-level deletion under Configure → Settings → Danger Zone — clicking that red button would destroy the entire app including Production. There's no per-instance delete on this tier. Leave the Dev instance alone; it's dormant and harmless.
+
 ## Key Features (Shipped)
 
 - Three-column desktop layout: sessions (left), timer (center), history (right)
@@ -123,6 +138,8 @@ Read `NOTES.md` for full details. The most dangerous ones:
 8. **`tick()` 24h safety net** — if `elapsed > 86400`, timer is killed immediately. Prevents corrupted sync data from saving as a session.
 9. **`splitSessionByDay` duration cap** — caps at 86400s to prevent the while loop from iterating thousands of times on corrupted data.
 10. **Wake Lock dual-path + retry** — native `navigator.wakeLock` API and a silent muted video run in parallel, not either/or. iPad Chrome (WKWebView) requires the retry-on-`NotAllowedError` pattern in `acquireWakeLock()` because the first `request('screen')` call often rejects and the second succeeds. `/silent.mp4` must stay as a **real file** in the repo root — iPad Chrome rejects `<video>` with `data:` URLs via `NotSupportedError`. `stopNoSleepVideo()` is called unconditionally on release, not just on the non-native branch. See NOTES.md 2026-04-21 entry for the full debugging trail.
+11. **Clerk init path must NOT gate on `window.Clerk?.loaded`** — the poll that kicks `initAuth()` must fire as soon as `window.Clerk` exists, not wait for `.loaded`. `initAuth()` is what calls `Clerk.load()` — which is what makes `.loaded` become true. Gating the init path on `.loaded` creates a chicken/egg: nothing drives the load, Clerk sits idle, every Sign in button does nothing. Only the **consumers** of Clerk (`openSignIn`, `openSignUp`) should gate on `.loaded`. A real 2-hour production outage on 2026-04-23 came from this exact confusion. See NOTES.md 2026-04-23 entry.
+12. **Never toggle Clerk "Enable allowed subdomains"** — it switches Clerk into whitelist mode where ONLY listed subdomains can authenticate. Enabling it without also listing the apex domain and `www` locks everyone out. This caused the same 2026-04-23 outage. Clerk accepts subdomains of the primary domain by default; leave the toggle OFF and the list EMPTY unless you genuinely need to restrict access.
 
 ## Conventions
 

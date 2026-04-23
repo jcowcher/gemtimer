@@ -149,3 +149,63 @@ Screen slept during active timer on iPad Chrome despite Keep Screen On being lit
 *Long-term:* Wake Lock reliability on iPad browsers is not fully fixable from the web platform — Apple's WKWebView restrictions on third-party browsers cap what we can do. Native iOS app is the only robust long-term answer.
 
 `ac0785e` (fallback fix), `9b7ffbc` → `994ccbd` (debug badge iterations), `433757c` (silent.mp4 file), `dbe8adc` (retry + cleanup).
+
+---
+
+**Clerk init path must NOT gate on `.loaded` — postmortem 2026-04-23**
+
+Phase 1 of the dev/staging ops work shipped a "readiness guard" that changed the Clerk init poll from `if (window.Clerk)` to `if (window.Clerk?.loaded)`. This looked defensive but caused a **~2-hour production outage**: sign-in on `www.gemtimer.com` stopped working entirely. SDK loaded from the CDN, `window.Clerk` existed, but `.loaded` never flipped to `true` — so the poll never fired `initAuth()`, which is the **only thing that calls `Clerk.load()`** in this codebase. Nothing was driving the async handshake with `clerk.gemtimer.com`, so the SDK sat idle forever and every Sign in button did nothing.
+
+*Diagnostic signal:* Network tab on prod showed `clerk.browser.js` downloaded from `cdn.jsdelivr.net` (SDK present), and zero requests to `clerk.gemtimer.com/v1/*` (no backend handshake). That "SDK present + no backend traffic" pattern means `Clerk.load()` was never invoked.
+
+*Fix:* Separate the init path from the consumer path. The poll fires `initAuth()` as soon as `window.Clerk` exists (independent of `.loaded`). `initAuth()` internally does `await Clerk.load()` — THAT is what flips `.loaded` to true. The modal consumers (`openSignIn`, `openSignUp`) keep the `.loaded` guard so users can't click sign-in before Clerk is ready. One flag, two different jobs.
+
+*Rule for future:* Readiness guards go on the **consumer** (who reads the ready state), never on the **driver** (who makes the ready state true). Don't gate the thing that triggers the load on whether the load has finished.
+
+`acd3b9a` (buggy deploy), `c88dd83` (hotfix).
+
+---
+
+**Never toggle Clerk "Enable allowed subdomains"**
+
+Same 2026-04-23 outage. Clerk Dashboard → Developers → Domains → Allowed Subdomains has a toggle labeled "Enable allowed subdomains". Enabling it flips Clerk into **whitelist mode** — only subdomains explicitly listed can authenticate. We enabled it with only `preseason.gemtimer.com` in the list, which locked out `gemtimer.com` / `www.gemtimer.com` / every other origin.
+
+The toggle's wording ("restrict access to specific subdomains of your configured domains") sounds like it adds allowance, but it removes the default permissive behavior.
+
+*Default state (correct):* toggle OFF, list empty → Clerk accepts any subdomain of the primary domain automatically. This is what you want for `preseason.gemtimer.com` + `www.gemtimer.com` + apex simultaneously.
+
+*Fix:* turn toggle off, clear the list.
+
+`acd3b9a` outage → recovery in same timeline.
+
+---
+
+**Feature flag system (2026-04-23)**
+
+Supabase `feature_flags` table (`key` PK, `enabled` boolean, `updated_at`) — RLS allows public read, writes locked to service_role. App fetches all flags on load via raw `fetch` to Supabase REST (before Clerk initializes, non-blocking). Stored in `window.FLAGS`; `getFlag(key, default=true)` is the only accessor. Fetch failures default features to ON, so a Supabase outage can't silently disable the app.
+
+Five current flags: `carve_outs`, `pomodoro_mode`, `deep_dive`, `supabase_sync`, `clerk_auth`. UI visibility flags hide DOM elements via `applyFlagVisibility()`. `supabase_sync` is guarded at the top of all nine sync functions. `clerk_auth` is guarded in `openSignIn` / `openSignUp` (existing sessions stay functional — the flag only prevents NEW auth). Localhost breaker fixtures (see below) are defensively filtered out of `migrateLocalToSupabase` so they can't leak to cloud.
+
+Flipping flags: `npm run flag:disable <key>` (CLI at `scripts/flag.js`, zero-dep, native fetch, reads `.env.local`). Service role key lives in `.env.local` only; never committed.
+
+`845b60f` (Deploy), Supabase migration `supabase/migrations/20260423_create_feature_flags.sql`.
+
+---
+
+**Localhost breaker fixtures (2026-04-23)**
+
+Two console helpers, `seedBreakers()` and `clearBreakers()`, available only on `localhost`/`127.0.0.1`. Seeds ~15 synthetic sessions into `localStorage.et_sessions` tagged `_fixture: 'breaker'`. Covers long names, 10-session-day density, 12h + 1m duration edges, gap days in history bars.
+
+Two layers of isolation so fixtures can't leak:
+1. Hostname check on the IIFE — the functions literally don't exist on preseason/prod.
+2. `migrateLocalToSupabase` filters `_fixture === 'breaker'` rows before any cloud insert — even if a localhost user signs in with fixtures in localStorage, nothing pushes to cloud.
+
+`09c5eac` (Deploy).
+
+---
+
+**Clerk Development instance parked, not deleted (2026-04-23)**
+
+Attempted to delete the Clerk Dev environment after the staging setup made it redundant. Clerk Hobby plan's Danger Zone only exposes application-level delete ("Delete the application and all associated instances and data"), which would destroy production. There is no per-instance delete option on this tier. Left the Dev instance dormant (no keys wired in the app, no active users beyond a test account) rather than risk misclicking.
+
+If the Dev instance ever becomes useful again, its publishable key is recoverable from the Clerk dashboard. Do NOT propose deleting it again on Hobby — the safe path doesn't exist from the dashboard on that plan.
