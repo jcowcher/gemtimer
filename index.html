@@ -3542,6 +3542,7 @@
 
   // Custom sign-in flow
   let pendingSignIn = false;
+  let pendingSignUp = false;
   let signInMode = 'sign_in'; // 'sign_in' or 'sign_up'
   let signInAttempt = null;
   let signUpAttempt = null;
@@ -3602,13 +3603,25 @@
   }
 
   function openSignIn() {
-    if (window.Clerk) {
+    if (window.Clerk?.loaded) {
       resetSignInForm();
       document.getElementById('clerkOverlay').style.display = 'flex';
       document.getElementById('signInEmail').focus();
       renderOAuthButtons();
     } else {
       pendingSignIn = true;
+    }
+  }
+
+  function openSignUp() {
+    if (window.Clerk?.loaded) {
+      resetSignInForm();
+      setSignInMode('sign_up');
+      document.getElementById('clerkOverlay').style.display = 'flex';
+      document.getElementById('signInEmail').focus();
+      renderOAuthButtons();
+    } else {
+      pendingSignUp = true;
     }
   }
 
@@ -3766,10 +3779,11 @@
   if (document.querySelector('script[data-clerk-publishable-key]')) {
     let clerkAttempts = 0;
     const checkClerk = setInterval(() => {
-      if (window.Clerk) {
+      if (window.Clerk?.loaded) {
         clearInterval(checkClerk);
         initAuth();
         if (pendingSignIn) { pendingSignIn = false; openSignIn(); }
+        else if (pendingSignUp) { pendingSignUp = false; openSignUp(); }
       } else if (++clerkAttempts > 100) {
         clearInterval(checkClerk);
         console.warn('Clerk failed to load after 10s');
@@ -3793,8 +3807,8 @@
     var btn = document.getElementById('landingSignIn');
     if (!btn) return;
     btn.addEventListener('click', openSignIn);
-    document.getElementById('landingGetStarted').addEventListener('click', openSignIn);
-    document.getElementById('landingCta').addEventListener('click', openSignIn);
+    document.getElementById('landingGetStarted').addEventListener('click', openSignUp);
+    document.getElementById('landingCta').addEventListener('click', openSignUp);
 
     // Landing clock (matches jeremycowcher.com style)
     var clockEl = document.getElementById('landingClock');
