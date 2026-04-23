@@ -3282,6 +3282,9 @@
   async function migrateLocalToSupabase(localSessions) {
     if (!getFlag('supabase_sync')) return;
     if (!currentUser || !supabaseClient) return;
+    // Never push localhost breaker fixtures to the cloud.
+    localSessions = localSessions.filter(s => s._fixture !== 'breaker');
+    if (!localSessions.length) return;
     try {
       const rows = localSessions.map(s => ({
         user_id: currentUser.id,
@@ -7007,6 +7010,49 @@
   // Console Easter egg for curious devs
   console.log('%c 221B ', 'background: #FF6600; color: white; font-size: 14px; font-weight: bold; border-radius: 3px;',
     'You know my methods. Type "221b" for a surprise.');
+
+  // Localhost-only layout breaker fixtures. Silently inert on preseason/prod.
+  // Each seeded session is tagged `_fixture: 'breaker'` so clearBreakers()
+  // preserves any real sessions, and migrateLocalToSupabase filters them
+  // out — breakers never leak to the cloud.
+  if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+    window.seedBreakers = function() {
+      const today = new Date();
+      const toKey = function(offsetDays) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - offsetDays);
+        return d.toISOString().slice(0, 10);
+      };
+      const tiny = Array.from({ length: 10 }, function(_, i) {
+        return { date: toKey(1), duration: 600, name: 'Short ' + (i + 1),
+          type: i % 2 === 0 ? 'deep' : 'sustaining', manual: false, _fixture: 'breaker' };
+      });
+      const breakers = [
+        // Long activity names — test "By activity" row truncation
+        { date: toKey(0), duration: 5400, name: 'IdeaKache - reading books that I think will really change how I work', type: 'deep', manual: false, _fixture: 'breaker' },
+        { date: toKey(0), duration: 2700, name: 'Super long activity name that should wrap or truncate in the UI', type: 'sustaining', manual: false, _fixture: 'breaker' },
+        // Many small sessions same day — test left-column list density
+        ...tiny,
+        // Extreme durations — test time formatting edges
+        { date: toKey(2), duration: 43200, name: '12h marathon', type: 'deep', manual: false, _fixture: 'breaker' },
+        { date: toKey(2), duration: 60, name: '1m nano', type: 'sustaining', manual: false, _fixture: 'breaker' },
+        // Older days — test history bars + heatmap with gaps
+        { date: toKey(4), duration: 3600, name: 'Regular session', type: 'deep', manual: false, _fixture: 'breaker' },
+        { date: toKey(5), duration: 7200, name: 'Another regular', type: 'deep', manual: false, _fixture: 'breaker' }
+        // Day 3 intentionally empty — tests empty-day gap in history
+      ];
+      const existing = JSON.parse(localStorage.getItem('et_sessions') || '[]');
+      localStorage.setItem('et_sessions', JSON.stringify(existing.concat(breakers)));
+      console.log('Seeded ' + breakers.length + ' breaker fixtures. Reload to see them.');
+    };
+    window.clearBreakers = function() {
+      const existing = JSON.parse(localStorage.getItem('et_sessions') || '[]');
+      const kept = existing.filter(function(s) { return s._fixture !== 'breaker'; });
+      localStorage.setItem('et_sessions', JSON.stringify(kept));
+      console.log('Removed ' + (existing.length - kept.length) + ' breaker fixtures. Reload.');
+    };
+    console.log('Localhost fixtures: call seedBreakers() or clearBreakers() in this console.');
+  }
 </script>
 
 <!-- Feedback FAB -->
