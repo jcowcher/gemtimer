@@ -3778,10 +3778,18 @@
 
   if (document.querySelector('script[data-clerk-publishable-key]')) {
     let clerkAttempts = 0;
+    let authInitStarted = false;
     const checkClerk = setInterval(() => {
+      // Kick initAuth() as soon as the SDK global exists. Clerk's script-tag
+      // auto-init does not reliably call .load() itself, so initAuth's
+      // `await Clerk.load()` is what actually drives init on production.
+      // openSignIn / openSignUp still gate on .loaded below.
+      if (window.Clerk && !authInitStarted) {
+        authInitStarted = true;
+        initAuth();
+      }
       if (window.Clerk?.loaded) {
         clearInterval(checkClerk);
-        initAuth();
         if (pendingSignIn) { pendingSignIn = false; openSignIn(); }
         else if (pendingSignUp) { pendingSignUp = false; openSignUp(); }
       } else if (++clerkAttempts > 100) {
