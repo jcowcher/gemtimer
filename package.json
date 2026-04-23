@@ -1,0 +1,7 @@
+{
+  "name": "gemtimer",
+  "private": true,
+  "scripts": {
+    "dev": "npx serve . -l 3001"
+  }
+}

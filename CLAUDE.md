@@ -57,9 +57,15 @@ NOTES.md             # Non-obvious workarounds and patterns (read before touchin
 
 No build step. Open `index.html` in a browser, or:
 ```
-npx serve .
+npm run dev
 ```
-Auth and cloud sync require the Clerk/Supabase keys in `.env.local` — but these are loaded from CDN in the HTML, so the app works unauthenticated without them.
+(which runs `npx serve . -l 3001`). Auth and cloud sync require the Clerk/Supabase keys in `.env.local` — but these are loaded from CDN in the HTML, so the app works unauthenticated without them.
+
+### Local preview overrides (for local-preview skill)
+- Dev command: `npm run dev` (runs `npx serve . -l 3001`)
+- Port: 3001
+- Required env: none for static preview; auth + cloud sync require `.env.local` with Clerk + Supabase keys
+- Special notes: vanilla HTML, no framework, no `.next` cache, no `node_modules`. First `npm run dev` fetches `serve` via `npx` (takes a few seconds).
 
 ## Key Features (Shipped)
 
