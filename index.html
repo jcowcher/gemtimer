@@ -2659,7 +2659,7 @@
       <button class="sidebar-toggle-row" id="pomodoroBtn"><span class="toggle-label">Pomodoro mode</span><span class="toggle-track"></span></button>
     </div>
 
-    <div class="carveout-wrap">
+    <div class="carveout-wrap" id="carveoutSection">
       <div class="carveout-label">Jeremy's carve outs</div>
       <a class="carveout-card" id="carveoutCard" href="#" target="_blank" rel="noopener noreferrer">
         <div class="carveout-img-wrap" id="carveoutImgWrap"><img id="carveoutImg" src="" alt=""></div>
@@ -3003,6 +3003,50 @@
   const SUPABASE_URL = 'https://mrphkxragldfngrkkuqs.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_C9Xjj5FztinEUw_ZVmFSnQ_qg09jxeE';
 
+  // Feature flags (kill switches). See supabase/migrations/20260423_create_feature_flags.sql
+  // and scripts/flag.js. Fetched non-blocking on page load; on fetch failure the
+  // getFlag default keeps features ON so a Supabase outage can't nuke the app.
+  window.FLAGS = {};
+  function getFlag(key, dflt) {
+    if (arguments.length < 2) dflt = true;
+    return (key in window.FLAGS) ? window.FLAGS[key] : dflt;
+  }
+  function applyFlagVisibility() {
+    if (!getFlag('carve_outs')) {
+      var el = document.getElementById('carveoutSection');
+      if (el) el.style.display = 'none';
+    }
+    if (!getFlag('deep_dive')) {
+      var el = document.getElementById('deepDiveBtn');
+      if (el) el.style.display = 'none';
+    }
+    if (!getFlag('pomodoro_mode')) {
+      var el = document.getElementById('pomodoroBtn');
+      if (el) el.style.display = 'none';
+    }
+    if (!getFlag('clerk_auth')) {
+      ['landingSignIn', 'landingGetStarted', 'landingCta', 'signInBtn'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+      });
+    }
+  }
+  (function fetchFlags() {
+    fetch(SUPABASE_URL + '/rest/v1/feature_flags?select=key,enabled', {
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + SUPABASE_ANON_KEY }
+    })
+      .then(function(r) { return r.ok ? r.json() : []; })
+      .then(function(rows) {
+        (rows || []).forEach(function(row) { window.FLAGS[row.key] = row.enabled; });
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', applyFlagVisibility);
+        } else {
+          applyFlagVisibility();
+        }
+      })
+      .catch(function() { /* features stay on */ });
+  })();
+
   let elapsed = 0;
   let interval = null;
   let running = false;
@@ -3188,6 +3232,7 @@
   });
 
   async function loadAndMergeFromSupabase() {
+    if (!getFlag('supabase_sync')) return;
     if (!currentUser || !supabaseClient) return;
     try {
       const { data, error } = await supabaseClient
@@ -3235,6 +3280,7 @@
   }
 
   async function migrateLocalToSupabase(localSessions) {
+    if (!getFlag('supabase_sync')) return;
     if (!currentUser || !supabaseClient) return;
     try {
       const rows = localSessions.map(s => ({
@@ -3258,6 +3304,7 @@
   }
 
   async function saveSessionToSupabase(session) {
+    if (!getFlag('supabase_sync')) return null;
     if (!currentUser || !supabaseClient) return null;
     try {
       const { data, error } = await supabaseClient
@@ -3295,6 +3342,7 @@
   }
 
   async function deleteSessionFromSupabase(sbId) {
+    if (!getFlag('supabase_sync')) return;
     if (!currentUser || !supabaseClient || !sbId) return;
     try {
       await supabaseClient
@@ -3309,6 +3357,7 @@
 
   // ── Hidden Activities Sync (cross-device) ──────────────
   async function loadHiddenActivitiesFromSupabase() {
+    if (!getFlag('supabase_sync')) return;
     if (!currentUser || !supabaseClient) return;
     try {
       const { data, error } = await supabaseClient
@@ -3334,6 +3383,7 @@
   }
 
   async function saveHiddenActivityToSupabase(name) {
+    if (!getFlag('supabase_sync')) return;
     if (!currentUser || !supabaseClient) return;
     try {
       await supabaseClient.from('hidden_activities').upsert(
@@ -3349,6 +3399,7 @@
   let _activityNameDebounceTimer = null;
 
   async function syncActiveTimer(fields) {
+    if (!getFlag('supabase_sync')) return;
     if (!currentUser || !supabaseClient) return;
     try {
       const row = Object.assign({ user_id: currentUser.id, updated_at: new Date().toISOString() }, fields);
@@ -3360,6 +3411,7 @@
   }
 
   async function deleteActiveTimer() {
+    if (!getFlag('supabase_sync')) return;
     if (!currentUser || !supabaseClient) return;
     try {
       await supabaseClient.from('active_timer').delete().eq('user_id', currentUser.id);
@@ -3379,6 +3431,7 @@
   let _activeTimerLoaded = false;
 
   async function loadActiveTimer() {
+    if (!getFlag('supabase_sync')) return;
     if (!currentUser || !supabaseClient) return;
     if (_activeTimerLoaded || running || elapsed > 0) return;
     _activeTimerLoaded = true;
@@ -3603,6 +3656,7 @@
   }
 
   function openSignIn() {
+    if (!getFlag('clerk_auth')) return;
     if (window.Clerk?.loaded) {
       resetSignInForm();
       document.getElementById('clerkOverlay').style.display = 'flex';
@@ -3614,6 +3668,7 @@
   }
 
   function openSignUp() {
+    if (!getFlag('clerk_auth')) return;
     if (window.Clerk?.loaded) {
       resetSignInForm();
       setSignInMode('sign_up');

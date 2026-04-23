@@ -2,6 +2,9 @@
   "name": "gemtimer",
   "private": true,
   "scripts": {
-    "dev": "npx serve . -l 3001"
+    "dev": "npx serve . -l 3001",
+    "flag:list": "node scripts/flag.js list",
+    "flag:enable": "node scripts/flag.js enable",
+    "flag:disable": "node scripts/flag.js disable"
   }
 }

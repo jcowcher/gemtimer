@@ -67,6 +67,34 @@ npm run dev
 - Required env: none for static preview; auth + cloud sync require `.env.local` with Clerk + Supabase keys
 - Special notes: vanilla HTML, no framework, no `.next` cache, no `node_modules`. First `npm run dev` fetches `serve` via `npx` (takes a few seconds).
 
+## Environments
+
+- **Production:** `https://gemtimer.com` (redirects to `www.gemtimer.com`). Deploys from `main` on every push.
+- **Staging:** `https://preseason.gemtimer.com`. Deploys from `dev` on every push. Uncommon subdomain chosen deliberately to keep it out of automated scanners. Gated by Vercel Standard Deployment Protection — only Vercel team members (just Jeremy) can reach it. Uses the **same** production Clerk + Supabase, so signing in as yourself shows real data. Staging is the required sanity check before merging to `main` for anything data-dependent.
+- **DO NOT** enable Clerk's "Allowed Subdomains" toggle or add entries to the list. It switches Clerk into whitelist mode and locks out the apex + www domains. This caused a 2-hour production outage on 2026-04-23. Clerk accepts all subdomains of `gemtimer.com` by default; no dashboard action needed for new subdomains.
+
+## Feature Flags (kill switches)
+
+Global flags in Supabase `feature_flags` table, fetched on page load and stored in `window.FLAGS`. Wrap risky features in `getFlag('<key>')` so they can be killed without a redeploy. Flag changes take effect on the next page load for each user.
+
+**Current flags (all default ON):**
+- `carve_outs` — right-sidebar "Jeremy's carve outs" panel
+- `pomodoro_mode` — Pomodoro toggle button in timer column
+- `deep_dive` — "Deep dive" analytics button + overlay
+- `supabase_sync` — all cloud sync reads/writes (`timer_history`, `active_timer`, `hidden_activities`). When off, app runs in localStorage-only mode; Clerk auth still works.
+- `clerk_auth` — new sign-in/sign-up flow. When off, Sign in and Get started buttons are hidden; existing Clerk sessions remain functional (you do NOT boot signed-in users out). Use this if something's wrong with Clerk and you want to stop new traffic while current users stay productive.
+
+**How to flip a flag:** Ask Claude Code (or run manually):
+```
+npm run flag:disable carve_outs
+npm run flag:enable  carve_outs
+npm run flag:list
+```
+
+Requires `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in `.env.local` (service role key bypasses RLS for writes). The CLI lives at `scripts/flag.js`.
+
+**Rule going forward:** any new feature with real blast radius (external services, affiliate links, payment flows, auth changes, anything that could take the site down) must be wrapped in a flag before shipping. Core timer functionality is exempt — if that breaks, revert the commit.
+
 ## Key Features (Shipped)
 
 - Three-column desktop layout: sessions (left), timer (center), history (right)
