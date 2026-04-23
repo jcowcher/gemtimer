@@ -832,9 +832,10 @@
   }
 
   .name-total-row {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr auto auto;
     align-items: center;
-    justify-content: space-between;
+    gap: 8px;
     padding: 0.3rem 0;
   }
 
@@ -845,6 +846,14 @@
     display: flex;
     align-items: center;
     gap: 0.4rem;
+    min-width: 0;
+  }
+
+  .name-total-name-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
   }
 
   .name-total-dot {
@@ -858,7 +867,6 @@
   .name-total-count {
     font-size: 0.68rem;
     color: var(--gray-400);
-    margin-left: 0.25rem;
     font-weight: 400;
   }
 
@@ -867,6 +875,7 @@
     font-weight: 600;
     color: var(--black);
     font-variant-numeric: tabular-nums;
+    text-align: right;
   }
 
   /* Daily + Weekly totals */
@@ -5850,8 +5859,11 @@
         sorted.map(key => {
           const dotClass = 'name-total-dot' + (nameMap[key].type === 'sustaining' ? ' sustaining' : '');
           return '<div class="name-total-row">' +
-            '<span class="name-total-name"><span class="' + dotClass + '"></span>' + escapeHtml(nameDisplay[key]) +
-              '<span class="name-total-count">&times;' + nameMap[key].count + '</span></span>' +
+            '<span class="name-total-name" title="' + escapeHtml(nameDisplay[key]).replace(/"/g, '&quot;') + '">' +
+              '<span class="' + dotClass + '"></span>' +
+              '<span class="name-total-name-text">' + escapeHtml(nameDisplay[key]) + '</span>' +
+            '</span>' +
+            '<span class="name-total-count">&times;' + nameMap[key].count + '</span>' +
             '<span class="name-total-time">' + fmtTotal(nameMap[key].total) + '</span>' +
           '</div>';
         }).join('');
