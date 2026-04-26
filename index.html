@@ -1344,7 +1344,7 @@
   .dd-hour-bar.sustaining { background: var(--gray-700); }
   .dd-hour-val { font-size: 0.55rem; color: var(--gray-400); flex-shrink: 0; white-space: nowrap; min-width: 24px; text-align: right; }
 
-  .dd-activity-list { display: flex; flex-direction: column; gap: 3px; overflow: hidden; max-height: 126px; }
+  .dd-activity-list { display: flex; flex-direction: column; gap: 3px; }
   .dd-activity-row { display: flex; align-items: center; gap: 0.5rem; }
   .dd-activity-name { font-size: 0.72rem; color: var(--black); width: 30%; max-width: 160px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: default; }
   .dd-activity-bar-wrap { flex: 1; min-width: 40px; height: 8px; background: var(--gray-100); border-radius: 4px; overflow: hidden; display: flex; }
@@ -6504,7 +6504,7 @@
 
     r2Left += '<div class="dd-section-title">By activity</div>';
     r2Left += '<div class="dd-activity-list">';
-    activities.slice(0, 6).forEach(function(entry) {
+    activities.forEach(function(entry) {
       var name = entry[0], data = entry[1];
       var totalSecs = data.deep + data.sustaining;
       var deepPct = Math.round(data.deep / maxActivitySec * 100);
