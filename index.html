@@ -2414,7 +2414,6 @@
     <div class="landing-nav-left">
       <div class="landing-logo">Gem<span>Timer</span></div>
       <a class="landing-nav-link" id="landingWhyLink">The Why</a>
-      <a class="landing-nav-link" id="landingWhatLink">The What</a>
       <a class="landing-nav-link" id="landingHowLink">The How</a>
     </div>
     <div class="landing-clock" id="landingClock"></div>
@@ -2529,14 +2528,6 @@
       <p>Content coming soon.</p>
     </div>
     <button class="why-overlay-close" id="howOverlayClose">&times;</button>
-  </div>
-
-  <div class="why-overlay" id="whatOverlay">
-    <div class="why-overlay-content">
-      <h2>The What</h2>
-      <p>Content coming soon.</p>
-    </div>
-    <button class="why-overlay-close" id="whatOverlayClose">&times;</button>
   </div>
 </div>
 
@@ -3889,11 +3880,10 @@
       setInterval(tickClock, 1000);
     }
 
-    // "The Why/How/What" overlays — identical wire-up, just different IDs.
+    // "The Why/How" overlays — identical wire-up, just different IDs.
     [
       ['landingWhyLink', 'whyOverlay', 'whyOverlayClose'],
-      ['landingHowLink', 'howOverlay', 'howOverlayClose'],
-      ['landingWhatLink', 'whatOverlay', 'whatOverlayClose']
+      ['landingHowLink', 'howOverlay', 'howOverlayClose']
     ].forEach(function(ids) {
       var link = document.getElementById(ids[0]);
       var overlay = document.getElementById(ids[1]);
