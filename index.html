@@ -612,8 +612,24 @@
     overflow-y: auto;
   }
 
-  .session-list::-webkit-scrollbar { width: 3px; }
+  /* Always-visible thin scrollbar so the user has a normal scroll affordance when the list overflows.
+     Firefox uses scrollbar-width/scrollbar-color; WebKit (Safari, iPad/desktop Chrome) needs the ::-webkit
+     rules below — those also override macOS overlay-scrollbar auto-hide so the thumb stays visible. */
+  .session-list { scrollbar-width: thin; scrollbar-color: var(--gray-300) transparent; }
+  /* -webkit-appearance: none forces WebKit to treat this as a custom scrollbar instead of a macOS
+     overlay scrollbar, so the thumb stays visible even when not actively scrolling. */
+  .session-list::-webkit-scrollbar { width: 6px; -webkit-appearance: none; }
+  .session-list::-webkit-scrollbar-track { background: transparent; }
   .session-list::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 3px; }
+
+  /* Wrap anchors the bottom fade so partial rows dissolve into the page bg instead of being hard-cropped. */
+  .session-list-wrap { position: relative; }
+  .session-list-fade {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    height: 24px;
+    pointer-events: none;
+    background: linear-gradient(to bottom, rgba(255,255,255,0), var(--white));
+  }
 
   .session-item {
     display: flex;
@@ -1802,6 +1818,8 @@
       border-left: none; border-right: none;
       padding: 0; max-height: none; overflow-y: visible;
     }
+    /* Mobile collapses to a single column and the page itself scrolls — list isn't scroll-bound here. */
+    .session-list-fade { display: none !important; }
     .stats-column {
       width: 100%; max-width: 360px; order: 3;
       border-left: none;
@@ -2601,7 +2619,10 @@
         <span class="section-title">Today's breakdown</span>
       </div>
       <div class="session-count-below" id="sessionCount"></div>
-      <ul class="session-list" id="sessionList"></ul>
+      <div class="session-list-wrap">
+        <ul class="session-list" id="sessionList"></ul>
+        <div class="session-list-fade" aria-hidden="true"></div>
+      </div>
       <button class="add-session-row" id="addSessionBtn"><span class="add-session-icon">+</span> Add a session</button>
       <div class="name-totals" id="nameTotals"></div>
       <div class="work-type-breakdown" id="workTypeBreakdown"></div>
