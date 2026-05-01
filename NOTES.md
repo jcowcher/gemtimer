@@ -192,6 +192,41 @@ Flipping flags: `npm run flag:disable <key>` (CLI at `scripts/flag.js`, zero-dep
 
 ---
 
+**Wake-lock self-healing watchdog (2026-05-01)**
+
+The 2026-04-21 fix made the dual-path acquire (native Wake Lock + silent `/silent.mp4`) reliable on first start. But iPad Chrome (WKWebView) sometimes silently revokes the native lock or freezes the silent video mid-session — no event fires. The only re-acquire path was `visibilitychange`, so a transient revocation while the tab stayed visible meant the lock was gone for the rest of the session and the screen could sleep with a running timer.
+
+*Fixes shipped (all guarded behind `screenOnActive && running`):*
+
+1. The native `release` listener now self-heals — both acquire sites (main path and `NotAllowedError` retry path) re-call `acquireWakeLock()` after nulling the sentinel. One reacquire only, no loop. If it fails, the existing `console.error` path catches it.
+2. New watchdog inside the top-level `tick()` (NOT the landing-trial tick inside `initLandingTryTimer`). Every 5th second of timer-elapsed time it: (a) re-acquires the native lock if `wakeLockSentinel` is null, (b) calls `playNoSleepVideo()` if the silent video paused or its `currentTime` hasn't advanced since the last check, (c) on the second consecutive stuck tick (~10s) it rebuilds `noSleepVideo` from scratch using the same attrs/src as the original creation block and replays. A `stuckVideoStrikes` counter resets to 0 on any successful advance.
+3. Added `pageshow` and `resume` listeners that mirror the existing `visibilitychange` re-acquire — covers iOS bfcache restore and WKWebView resume events that don't always fire `visibilitychange`.
+4. `playNoSleepVideo` / `stopNoSleepVideo` already reference `noSleepVideo` via closure, so reassigning the variable inside `recreateNoSleepVideo()` keeps the rest of the module pointing at the new element automatically.
+
+*Protected workarounds preserved:* `/silent.mp4` is still a real file (data: URLs reject on iPad Chrome with `NotSupportedError`); the `NotAllowedError` retry path is intact in `acquireWakeLock`; `stopNoSleepVideo()` is still called unconditionally in `releaseWakeLock`; the video element is still positioned at `top:0; left:0` inside the viewport.
+
+*Why a counter and not a separate `setInterval`:* piggybacking on `tick()` means the watchdog only runs while a timer is active, automatically pauses with the timer, and stops when `running` flips false. No extra interval to clean up.
+
+---
+
+**Wake-lock diagnostic badge (temporary, 2026-05-01)**
+
+The 2026-05-01 self-healing watchdog (preceding entry) didn't fix iPad Chrome — screen still slept around the 4-minute mark. Before guessing again, instrument and capture ground truth, mirroring the 2026-04-21 debug-badge approach.
+
+*What the badge captures (fixed bottom-right, monospace, semi-transparent, `pointer-events: none`):* `screenOn`, `running`, `native` (Wake Lock API support), `sentinel` (held/null), `lastAcquire`/`lastRelease` ages in seconds, `acquireCount`, `releaseEvents`, `video` (playing/paused), `videoTime`, `lastNativeErr`, `lastVideoErr`, `tickCount` (heartbeat), `visibility`. All counters live on `window.wakeLockDiag` so they can also be inspected from DevTools when a connection is available.
+
+*Update cadence:* every 1s from inside the top-level `tick()`, plus on `visibilitychange` / `pageshow` / `resume`.
+
+*Gate:* never on production `gemtimer.com` or `www.gemtimer.com` under any condition. Auto-on for `preseason.gemtimer.com`. Opt-in via `?wld=1` query param on any other host. Localhost without the param does NOT show the badge — keeps day-to-day dev clean.
+
+*Why bother:* iPad Chrome is opaque to remote debugging (Safari Web Inspector can't attach to third-party iOS browsers per the 2026-04-21 entry). The on-screen badge is the only reliable way to see internal state when the screen sleeps mid-session. The 2026-04-21 fix used the same pattern and removed the badge in the final commit (`dbe8adc`) once the failure modes were understood.
+
+*Plan to remove:* once we capture a sleep event with the badge state visible, document the readout in this file, then strip the badge + diag instrumentation in a follow-up commit. The instrumentation is additive — it does not modify any existing wake-lock logic, only observes it. Self-healing watchdog stays.
+
+*Outcome:* Could not reproduce. iPad Chrome ran 20+ minutes on preseason with the watchdog active and the screen never slept — 5× past the previous failure mark. No diagnostic captured because no failure occurred. The watchdog appears to be effective in practice, even though we never proved which code path saved us. Badge + instrumentation removed in `e6e41e8`. Self-healing watchdog stays in. If the bug returns, re-add the badge from the prior commit (`0e65c23`) for another capture attempt.
+
+---
+
 **Localhost breaker fixtures (2026-04-23)**
 
 Two console helpers, `seedBreakers()` and `clearBreakers()`, available only on `localhost`/`127.0.0.1`. Seeds ~15 synthetic sessions into `localStorage.et_sessions` tagged `_fixture: 'breaker'`. Covers long names, 10-session-day density, 12h + 1m duration edges, gap days in history bars.
