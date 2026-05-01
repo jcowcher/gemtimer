@@ -6974,12 +6974,16 @@
     btn.disabled = true;
     btn.textContent = 'Sending...';
     try {
-      if (!supabaseClient) throw new Error('Not connected');
-      const { error } = await supabaseClient.from('feedback').insert({
-        message,
-        user_id: currentUser ? currentUser.id : null
+      // POST to /api/feedback — server records the row in Supabase (service role) and emails Jeremy via Resend.
+      const response = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message,
+          user_id: currentUser ? currentUser.id : null
+        })
       });
-      if (error) throw error;
+      if (!response.ok) throw new Error(`Status ${response.status}`);
       textarea.value = '';
       document.getElementById('feedbackOverlay').classList.remove('active');
       showFeedbackToast('Thanks for your feedback!');
