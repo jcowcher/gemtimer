@@ -223,6 +223,8 @@ The 2026-05-01 self-healing watchdog (preceding entry) didn't fix iPad Chrome �
 
 *Plan to remove:* once we capture a sleep event with the badge state visible, document the readout in this file, then strip the badge + diag instrumentation in a follow-up commit. The instrumentation is additive — it does not modify any existing wake-lock logic, only observes it. Self-healing watchdog stays.
 
+*Outcome:* Could not reproduce. iPad Chrome ran 20+ minutes on preseason with the watchdog active and the screen never slept — 5× past the previous failure mark. No diagnostic captured because no failure occurred. The watchdog appears to be effective in practice, even though we never proved which code path saved us. Badge + instrumentation removed in `e6e41e8`. Self-healing watchdog stays in. If the bug returns, re-add the badge from the prior commit (`0e65c23`) for another capture attempt.
+
 ---
 
 **Localhost breaker fixtures (2026-04-23)**
