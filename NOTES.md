@@ -209,6 +209,22 @@ The 2026-04-21 fix made the dual-path acquire (native Wake Lock + silent `/silen
 
 ---
 
+**Wake-lock diagnostic badge (temporary, 2026-05-01)**
+
+The 2026-05-01 self-healing watchdog (preceding entry) didn't fix iPad Chrome — screen still slept around the 4-minute mark. Before guessing again, instrument and capture ground truth, mirroring the 2026-04-21 debug-badge approach.
+
+*What the badge captures (fixed bottom-right, monospace, semi-transparent, `pointer-events: none`):* `screenOn`, `running`, `native` (Wake Lock API support), `sentinel` (held/null), `lastAcquire`/`lastRelease` ages in seconds, `acquireCount`, `releaseEvents`, `video` (playing/paused), `videoTime`, `lastNativeErr`, `lastVideoErr`, `tickCount` (heartbeat), `visibility`. All counters live on `window.wakeLockDiag` so they can also be inspected from DevTools when a connection is available.
+
+*Update cadence:* every 1s from inside the top-level `tick()`, plus on `visibilitychange` / `pageshow` / `resume`.
+
+*Gate:* never on production `gemtimer.com` or `www.gemtimer.com` under any condition. Auto-on for `preseason.gemtimer.com`. Opt-in via `?wld=1` query param on any other host. Localhost without the param does NOT show the badge — keeps day-to-day dev clean.
+
+*Why bother:* iPad Chrome is opaque to remote debugging (Safari Web Inspector can't attach to third-party iOS browsers per the 2026-04-21 entry). The on-screen badge is the only reliable way to see internal state when the screen sleeps mid-session. The 2026-04-21 fix used the same pattern and removed the badge in the final commit (`dbe8adc`) once the failure modes were understood.
+
+*Plan to remove:* once we capture a sleep event with the badge state visible, document the readout in this file, then strip the badge + diag instrumentation in a follow-up commit. The instrumentation is additive — it does not modify any existing wake-lock logic, only observes it. Self-healing watchdog stays.
+
+---
+
 **Localhost breaker fixtures (2026-04-23)**
 
 Two console helpers, `seedBreakers()` and `clearBreakers()`, available only on `localhost`/`127.0.0.1`. Seeds ~15 synthetic sessions into `localStorage.et_sessions` tagged `_fixture: 'breaker'`. Covers long names, 10-session-day density, 12h + 1m duration edges, gap days in history bars.

@@ -5370,6 +5370,9 @@
       wakeLockWatchdogCounter = (wakeLockWatchdogCounter + 1) % 5;
       if (wakeLockWatchdogCounter === 0) wakeLockWatchdogTick();
     }
+    // Diagnostic heartbeat — tickCount bumps every second, badge refreshes if mounted (preseason / ?wld=1).
+    if (window.wakeLockDiag) window.wakeLockDiag.tickCount += 1;
+    if (typeof window.updateWakeLockBadge === 'function') window.updateWakeLockBadge();
 
     if (pomodoroMode) {
       const target = pomodoroPhase === 'work' ? POMO_WORK : POMO_BREAK;
@@ -5587,6 +5590,19 @@
   var hasNativeWakeLock = 'wakeLock' in navigator;
   var noSleepVideo = null;
 
+  // Diagnostic state — populated by acquireWakeLock / playNoSleepVideo / tick(). Surfaced via
+  // window.wakeLockDiag for DevTools inspection and via the on-screen badge (gated below).
+  // Temporary instrumentation for the iPad Chrome silent-revocation investigation.
+  window.wakeLockDiag = {
+    lastAcquireTs: null,
+    lastReleaseTs: null,
+    acquireCount: 0,
+    releaseEvents: 0,
+    lastNativeErr: null,
+    lastVideoErr: null,
+    tickCount: 0
+  };
+
   // Always create the silent video — used as a belt-and-suspenders fallback even when navigator.wakeLock exists,
   // because on iPad Chrome the native request can resolve but not actually inhibit screen sleep.
   noSleepVideo = document.createElement('video');
@@ -5614,9 +5630,11 @@
       var playPromise = noSleepVideo.play();
       if (playPromise) playPromise.catch(function(e) {
         console.error('[WakeLock] silent video play denied:', e.name, e.message);
+        window.wakeLockDiag.lastVideoErr = { name: e.name, message: e.message };
       });
     } catch (e) {
       console.error('[WakeLock] silent video error:', e.name, e.message);
+      window.wakeLockDiag.lastVideoErr = { name: e.name, message: e.message };
     }
   }
 
@@ -5632,7 +5650,11 @@
     if (!hasNativeWakeLock || wakeLockSentinel) return;
     try {
       wakeLockSentinel = await navigator.wakeLock.request('screen');
+      window.wakeLockDiag.acquireCount += 1;
+      window.wakeLockDiag.lastAcquireTs = Date.now();
       wakeLockSentinel.addEventListener('release', function() {
+        window.wakeLockDiag.releaseEvents += 1;
+        window.wakeLockDiag.lastReleaseTs = Date.now();
         wakeLockSentinel = null;
         // Self-heal: iPad Chrome silently revokes the lock mid-session — one reacquire, no loop.
         if (screenOnActive && running) acquireWakeLock();
@@ -5643,7 +5665,11 @@
         await new Promise(function(r) { setTimeout(r, 200); });
         try {
           wakeLockSentinel = await navigator.wakeLock.request('screen');
+          window.wakeLockDiag.acquireCount += 1;
+          window.wakeLockDiag.lastAcquireTs = Date.now();
           wakeLockSentinel.addEventListener('release', function() {
+            window.wakeLockDiag.releaseEvents += 1;
+            window.wakeLockDiag.lastReleaseTs = Date.now();
             wakeLockSentinel = null;
             // Self-heal: iPad Chrome silently revokes the lock mid-session — one reacquire, no loop.
             if (screenOnActive && running) acquireWakeLock();
@@ -5654,6 +5680,7 @@
         }
       }
       console.error('[WakeLock] native request denied:', e.name, e.message);
+      window.wakeLockDiag.lastNativeErr = { name: e.name, message: e.message };
     }
   }
 
@@ -5711,6 +5738,55 @@
       lastVideoCurrentTime = noSleepVideo.currentTime;
     }
   }
+
+  // Diagnostic badge — TEMPORARY instrumentation for the iPad Chrome wake-lock investigation.
+  // Gate: never on production gemtimer.com; otherwise auto-on for preseason and opt-in via ?wld=1.
+  // Localhost without ?wld=1 deliberately does NOT show the badge so day-to-day dev isn't cluttered.
+  (function setupWakeLockBadge() {
+    var host = location.hostname;
+    var isProdHost = host === 'gemtimer.com' || host === 'www.gemtimer.com';
+    if (isProdHost) return;
+    var isPreseason = host === 'preseason.gemtimer.com';
+    var wldParam = false;
+    try { wldParam = new URLSearchParams(location.search).get('wld') === '1'; } catch (e) {}
+    if (!isPreseason && !wldParam) return;
+
+    var badge = document.createElement('div');
+    badge.id = 'wakeLockBadge';
+    badge.style.cssText = 'position:fixed;bottom:8px;right:8px;background:rgba(0,0,0,0.78);color:#fff;font:12px/1.4 Menlo,Consolas,monospace;padding:8px 10px;border-radius:6px;white-space:pre;z-index:99999;pointer-events:none;max-width:240px;';
+    badge.textContent = 'wake-lock diag\n(initializing...)';
+    document.body.appendChild(badge);
+
+    function fmtAge(ts) { return ts == null ? 'never' : Math.round((Date.now() - ts) / 1000) + 's ago'; }
+    function fmtErr(e) { return e ? (e.name + ': ' + e.message) : 'none'; }
+
+    window.updateWakeLockBadge = function updateWakeLockBadge() {
+      var d = window.wakeLockDiag;
+      var lines = [
+        'wake-lock diag',
+        'screenOn: ' + screenOnActive,
+        'running: ' + running,
+        'native: ' + (hasNativeWakeLock ? 'yes' : 'no'),
+        'sentinel: ' + (wakeLockSentinel ? 'held' : 'null'),
+        'lastAcquire: ' + fmtAge(d.lastAcquireTs),
+        'lastRelease: ' + fmtAge(d.lastReleaseTs),
+        'acquireCount: ' + d.acquireCount,
+        'releaseEvents: ' + d.releaseEvents,
+        'video: ' + (noSleepVideo && !noSleepVideo.paused ? 'playing' : 'paused'),
+        'videoTime: ' + (noSleepVideo ? noSleepVideo.currentTime.toFixed(1) : '—'),
+        'lastNativeErr: ' + fmtErr(d.lastNativeErr),
+        'lastVideoErr: ' + fmtErr(d.lastVideoErr),
+        'tickCount: ' + d.tickCount,
+        'visibility: ' + document.visibilityState
+      ];
+      badge.textContent = lines.join('\n');
+    };
+
+    window.updateWakeLockBadge();
+    document.addEventListener('visibilitychange', window.updateWakeLockBadge);
+    window.addEventListener('pageshow', window.updateWakeLockBadge);
+    window.addEventListener('resume', window.updateWakeLockBadge);
+  })();
 
   // Re-acquire if toggle is on and a running timer was restored from cross-device sync.
   if (screenOnActive && running) acquireWakeLock();
