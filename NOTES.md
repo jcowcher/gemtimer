@@ -192,6 +192,23 @@ Flipping flags: `npm run flag:disable <key>` (CLI at `scripts/flag.js`, zero-dep
 
 ---
 
+**Wake-lock self-healing watchdog (2026-05-01)**
+
+The 2026-04-21 fix made the dual-path acquire (native Wake Lock + silent `/silent.mp4`) reliable on first start. But iPad Chrome (WKWebView) sometimes silently revokes the native lock or freezes the silent video mid-session — no event fires. The only re-acquire path was `visibilitychange`, so a transient revocation while the tab stayed visible meant the lock was gone for the rest of the session and the screen could sleep with a running timer.
+
+*Fixes shipped (all guarded behind `screenOnActive && running`):*
+
+1. The native `release` listener now self-heals — both acquire sites (main path and `NotAllowedError` retry path) re-call `acquireWakeLock()` after nulling the sentinel. One reacquire only, no loop. If it fails, the existing `console.error` path catches it.
+2. New watchdog inside the top-level `tick()` (NOT the landing-trial tick inside `initLandingTryTimer`). Every 5th second of timer-elapsed time it: (a) re-acquires the native lock if `wakeLockSentinel` is null, (b) calls `playNoSleepVideo()` if the silent video paused or its `currentTime` hasn't advanced since the last check, (c) on the second consecutive stuck tick (~10s) it rebuilds `noSleepVideo` from scratch using the same attrs/src as the original creation block and replays. A `stuckVideoStrikes` counter resets to 0 on any successful advance.
+3. Added `pageshow` and `resume` listeners that mirror the existing `visibilitychange` re-acquire — covers iOS bfcache restore and WKWebView resume events that don't always fire `visibilitychange`.
+4. `playNoSleepVideo` / `stopNoSleepVideo` already reference `noSleepVideo` via closure, so reassigning the variable inside `recreateNoSleepVideo()` keeps the rest of the module pointing at the new element automatically.
+
+*Protected workarounds preserved:* `/silent.mp4` is still a real file (data: URLs reject on iPad Chrome with `NotSupportedError`); the `NotAllowedError` retry path is intact in `acquireWakeLock`; `stopNoSleepVideo()` is still called unconditionally in `releaseWakeLock`; the video element is still positioned at `top:0; left:0` inside the viewport.
+
+*Why a counter and not a separate `setInterval`:* piggybacking on `tick()` means the watchdog only runs while a timer is active, automatically pauses with the timer, and stops when `running` flips false. No extra interval to clean up.
+
+---
+
 **Localhost breaker fixtures (2026-04-23)**
 
 Two console helpers, `seedBreakers()` and `clearBreakers()`, available only on `localhost`/`127.0.0.1`. Seeds ~15 synthetic sessions into `localStorage.et_sessions` tagged `_fixture: 'breaker'`. Covers long names, 10-session-day density, 12h + 1m duration edges, gap days in history bars.

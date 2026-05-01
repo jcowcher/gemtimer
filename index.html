@@ -5365,6 +5365,12 @@
     if (elapsed > 86400) { elapsed = 0; elapsedBeforePause = 0; clearInterval(interval); running = false; if (typeof releaseWakeLock === 'function') releaseWakeLock(); return; }
     updateDisplay();
 
+    // Wake-lock watchdog every 5s — guards against silent revocation on iPad Chrome (WKWebView).
+    if (typeof wakeLockWatchdogTick === 'function') {
+      wakeLockWatchdogCounter = (wakeLockWatchdogCounter + 1) % 5;
+      if (wakeLockWatchdogCounter === 0) wakeLockWatchdogTick();
+    }
+
     if (pomodoroMode) {
       const target = pomodoroPhase === 'work' ? POMO_WORK : POMO_BREAK;
       if (elapsed >= target) {
@@ -5626,14 +5632,22 @@
     if (!hasNativeWakeLock || wakeLockSentinel) return;
     try {
       wakeLockSentinel = await navigator.wakeLock.request('screen');
-      wakeLockSentinel.addEventListener('release', function() { wakeLockSentinel = null; });
+      wakeLockSentinel.addEventListener('release', function() {
+        wakeLockSentinel = null;
+        // Self-heal: iPad Chrome silently revokes the lock mid-session — one reacquire, no loop.
+        if (screenOnActive && running) acquireWakeLock();
+      });
     } catch (e) {
       // iPad Chrome (WKWebView) sometimes rejects the first request with NotAllowedError but accepts a retry.
       if (e.name === 'NotAllowedError') {
         await new Promise(function(r) { setTimeout(r, 200); });
         try {
           wakeLockSentinel = await navigator.wakeLock.request('screen');
-          wakeLockSentinel.addEventListener('release', function() { wakeLockSentinel = null; });
+          wakeLockSentinel.addEventListener('release', function() {
+            wakeLockSentinel = null;
+            // Self-heal: iPad Chrome silently revokes the lock mid-session — one reacquire, no loop.
+            if (screenOnActive && running) acquireWakeLock();
+          });
           return;
         } catch (e2) {
           e = e2;
@@ -5649,6 +5663,53 @@
       wakeLockSentinel = null;
     }
     stopNoSleepVideo();
+  }
+
+  // Watchdog state — iPad Chrome (WKWebView) silently revokes the native lock or freezes the silent video
+  // mid-session with no event fired. tick() pings wakeLockWatchdogTick() every 5s so we self-heal in-flight.
+  var wakeLockWatchdogCounter = 0;
+  var lastVideoCurrentTime = 0;
+  var stuckVideoStrikes = 0;
+
+  function recreateNoSleepVideo() {
+    // Mirrors the original creation block at top of the wake-lock module — same attrs, same /silent.mp4 file.
+    if (noSleepVideo && noSleepVideo.parentNode) noSleepVideo.parentNode.removeChild(noSleepVideo);
+    noSleepVideo = document.createElement('video');
+    noSleepVideo.setAttribute('playsinline', '');
+    noSleepVideo.setAttribute('muted', '');
+    noSleepVideo.muted = true;
+    noSleepVideo.loop = true;
+    noSleepVideo.style.position = 'fixed';
+    noSleepVideo.style.top = '0';
+    noSleepVideo.style.left = '0';
+    noSleepVideo.style.width = '1px';
+    noSleepVideo.style.height = '1px';
+    noSleepVideo.style.opacity = '0.01';
+    noSleepVideo.src = '/silent.mp4';
+    document.body.appendChild(noSleepVideo);
+  }
+
+  function wakeLockWatchdogTick() {
+    if (!screenOnActive || !running) return;
+    if (hasNativeWakeLock && !wakeLockSentinel) acquireWakeLock();
+    if (noSleepVideo) {
+      var ct = noSleepVideo.currentTime;
+      var stalled = noSleepVideo.paused || ct === lastVideoCurrentTime;
+      if (stalled) {
+        stuckVideoStrikes += 1;
+        if (stuckVideoStrikes >= 2) {
+          // Second consecutive stuck tick — replay didn't unfreeze it, so rebuild the element from scratch.
+          recreateNoSleepVideo();
+          playNoSleepVideo();
+          stuckVideoStrikes = 0;
+        } else {
+          playNoSleepVideo();
+        }
+      } else {
+        stuckVideoStrikes = 0;
+      }
+      lastVideoCurrentTime = noSleepVideo.currentTime;
+    }
   }
 
   // Re-acquire if toggle is on and a running timer was restored from cross-device sync.
@@ -5669,6 +5730,13 @@
 
   document.addEventListener('visibilitychange', function() {
     if (document.visibilityState === 'visible' && screenOnActive && running) acquireWakeLock();
+  });
+  // Mirror the visibilitychange re-acquire on iOS bfcache restore (pageshow) and WKWebView resume.
+  window.addEventListener('pageshow', function() {
+    if (screenOnActive && running) acquireWakeLock();
+  });
+  window.addEventListener('resume', function() {
+    if (screenOnActive && running) acquireWakeLock();
   });
 
   // Replace start/pause button with a clone to detach the earlier listener; rebind with Easter egg labels below.
